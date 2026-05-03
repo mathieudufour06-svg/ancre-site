@@ -204,10 +204,71 @@ function getWeatherScoreBreakdown(job, weather) {
   };
 }
 
+/**
+ * Décide automatiquement quoi faire avec chaque job en fonction de la météo.
+ *
+ * @param {Array} jobs
+ * @param {Object<string, Object>} weatherByHour
+ * @returns {Array<{jobId, client, action, suggestedTime, message}>}
+ */
+function rescheduleJobs(jobs, weatherByHour) {
+  const hours = Object.keys(weatherByHour);
+
+  return jobs.map((job) => {
+    let bestOk = null;
+    let bestRisk = null;
+    let bestAny = null;
+
+    for (const hour of hours) {
+      const evaluation = evaluateJobWeather(job, weatherByHour[hour]);
+      const candidate = { hour, ...evaluation };
+
+      if (evaluation.status === 'ok' && (!bestOk || evaluation.score > bestOk.score)) {
+        bestOk = candidate;
+      }
+      if (evaluation.status === 'risk' && (!bestRisk || evaluation.score > bestRisk.score)) {
+        bestRisk = candidate;
+      }
+      if (!bestAny || evaluation.score > bestAny.score) {
+        bestAny = candidate;
+      }
+    }
+
+    if (bestOk) {
+      return {
+        jobId: job.id,
+        client: job.client,
+        action: 'maintain',
+        suggestedTime: bestOk.hour,
+        message: `Conditions favorables à ${bestOk.hour}`,
+      };
+    }
+
+    if (bestRisk) {
+      return {
+        jobId: job.id,
+        client: job.client,
+        action: 'risky',
+        suggestedTime: bestRisk.hour,
+        message: 'Conditions risquées, à surveiller',
+      };
+    }
+
+    return {
+      jobId: job.id,
+      client: job.client,
+      action: 'reschedule',
+      suggestedTime: null,
+      message: 'Pluie prévue toute la journée, reporter',
+    };
+  });
+}
+
 module.exports = {
   evaluateJobWeather,
   suggestSchedule,
   getWeatherScoreBreakdown,
+  rescheduleJobs,
   setConfig,
   config,
 };
