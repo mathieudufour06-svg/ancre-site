@@ -103,6 +103,22 @@
     .weather-pill .meta { display: flex; flex-direction: column; line-height: 1.15; }
     .weather-pill .meta b { color: var(--text-0); font-weight: 600; font-size: 0.92rem; }
     .weather-pill .meta span { color: var(--text-2); font-size: 0.75rem; }
+    .source-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border: 1px solid transparent;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .source-tag::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; box-shadow: 0 0 8px currentColor;
+    }
+    .source-tag.real { background: rgba(16,185,129,0.14); color: #34d399; border-color: rgba(16,185,129,0.4); }
+    .source-tag.mock { background: rgba(148,163,184,0.14); color: #94a3b8; border-color: rgba(148,163,184,0.35); }
+    .source-tag.loading { background: rgba(99,102,241,0.14); color: #a5b4fc; border-color: rgba(99,102,241,0.4); }
 
     /* ============== HERO ============== */
     .hero {
@@ -465,6 +481,7 @@
           <b id="weatherTemp">— °C</b>
           <span id="weatherDesc">Météo simulée du jour</span>
         </div>
+        <span class="source-tag mock" id="weatherSource">Météo simulée</span>
       </div>
     </div>
 
@@ -541,12 +558,59 @@
   </div>
 
   <script>
+    // === OpenWeather API (à remplacer par ta vraie clé) ===
+    const API_KEY = "PASTE_OPENWEATHER_KEY_HERE";
+    // Coordonnées par défaut (Montréal, QC)
+    const DEFAULT_LAT = 45.5017;
+    const DEFAULT_LON = -73.5673;
+    const WANTED_HOURS = [7, 8, 9, 10, 11, 13, 14, 15];
+
     const jobs = [
       { id: 1, client: 'Tremblay', type: 'pose_tourbe', priority: 'high',   deadline: '2026-06-10' },
       { id: 2, client: 'Gagnon',   type: 'peinture',    priority: 'urgent', deadline: '2026-06-05' },
       { id: 3, client: 'Roy',      type: 'excavation',  priority: 'medium', deadline: '2026-06-15' },
       { id: 4, client: 'Bouchard', type: 'pavage',      priority: 'low',    deadline: '2026-06-20' },
     ];
+
+    /**
+     * Récupère la météo réelle via OpenWeather One Call API 3.0
+     * et la convertit au format interne attendu par le moteur.
+     */
+    async function fetchRealWeather(lat, lon) {
+      if (!API_KEY || API_KEY === 'PASTE_OPENWEATHER_KEY_HERE') {
+        throw new Error('Clé API manquante');
+      }
+      const url = `https://api.openweathermap.org/data/3.0/onecall`
+        + `?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+        + `&exclude=current,minutely,daily,alerts&units=metric`
+        + `&appid=${encodeURIComponent(API_KEY)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('OpenWeather: HTTP ' + res.status);
+      const data = await res.json();
+      if (!Array.isArray(data.hourly) || data.hourly.length === 0) {
+        throw new Error('OpenWeather: pas de données horaires');
+      }
+      const seen = new Set();
+      const slots = [];
+      for (const h of data.hourly) {
+        const date = new Date(h.dt * 1000);
+        const hour = date.getHours();
+        if (!WANTED_HOURS.includes(hour) || seen.has(hour)) continue;
+        seen.add(hour);
+        slots.push({
+          hour,
+          time: String(hour).padStart(2, '0') + ':00',
+          rainProbability: Math.round((h.pop || 0) * 100),
+          windKmh: Math.round((h.wind_speed || 0) * 3.6),
+          temperature: Math.round(h.temp ?? 0),
+          humidity: Math.round(h.humidity ?? 0),
+        });
+        if (slots.length === WANTED_HOURS.length) break;
+      }
+      if (!slots.length) throw new Error('OpenWeather: aucun créneau utile');
+      slots.sort((a, b) => a.hour - b.hour);
+      return slots.map(({ hour, ...rest }) => rest);
+    }
 
     function getMockWeather() {
       return [
@@ -728,8 +792,8 @@
       document.getElementById('statReschedule').textContent = reschedule;
     }
 
-    function renderWeatherSummary() {
-      const w = getMockWeather();
+    function renderWeatherSummary(weather) {
+      const w = weather || getMockWeather();
       const temps = w.map(s => s.temperature);
       const minT = Math.min(...temps);
       const maxT = Math.max(...temps);
@@ -740,6 +804,17 @@
       document.getElementById('weatherTemp').textContent = `${minT}° → ${maxT}°C`;
       document.getElementById('weatherDesc').textContent = desc;
     }
+
+    function setWeatherSource(state) {
+      // state ∈ 'real' | 'mock' | 'loading'
+      const tag = document.getElementById('weatherSource');
+      tag.classList.remove('real', 'mock', 'loading');
+      tag.classList.add(state);
+      tag.textContent = state === 'real'
+        ? 'Météo réelle'
+        : state === 'loading' ? 'Chargement…' : 'Météo simulée';
+    }
+
     renderWeatherSummary();
 
     function scoreBarClass(score) {
@@ -748,8 +823,18 @@
       return 'bad';
     }
 
-    function runSimulation() {
-      const weather = getMockWeather();
+    async function runSimulation() {
+      setWeatherSource('loading');
+      let weather;
+      try {
+        weather = await fetchRealWeather(DEFAULT_LAT, DEFAULT_LON);
+        setWeatherSource('real');
+      } catch (err) {
+        console.warn('Fallback météo simulée :', err.message);
+        weather = getMockWeather();
+        setWeatherSource('mock');
+      }
+      renderWeatherSummary(weather);
       const weatherByHour = {};
       for (const s of weather) weatherByHour[s.time] = s;
 
