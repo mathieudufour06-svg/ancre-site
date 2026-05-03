@@ -228,11 +228,45 @@ function getDeadlineUrgency(job) {
   return 0;
 }
 
+// Pondérations du score final
+const FINAL_WEIGHTS = { weather: 0.7, priority: 0.2, deadline: 0.1 };
+
+function computeAdjustedScore(weatherScore, priorityBoost, deadlineBoost) {
+  // priorityBoost et deadlineBoost sont sur 30 → normalisés sur 100
+  return (
+    weatherScore * FINAL_WEIGHTS.weather +
+    (priorityBoost / 30) * 100 * FINAL_WEIGHTS.priority +
+    (deadlineBoost / 30) * 100 * FINAL_WEIGHTS.deadline
+  );
+}
+
+/**
+ * Identifie la cause principale d'un score risqué via le breakdown.
+ * Renvoie 'pluie', 'humidité', 'vent' ou 'température'.
+ */
+function getMainWeatherIssue(job, weather) {
+  const breakdown = getWeatherScoreBreakdown(job, weather);
+  const weights = getWeights(job.type);
+  const ratios = {
+    pluie: breakdown.rainScore / weights.rain,
+    vent: breakdown.windScore / weights.wind,
+    température: breakdown.temperatureScore / weights.temperature,
+    humidité: breakdown.humidityScore / weights.humidity,
+  };
+  let worstKey = 'pluie';
+  let worstRatio = Infinity;
+  for (const [key, ratio] of Object.entries(ratios)) {
+    if (ratio < worstRatio) {
+      worstRatio = ratio;
+      worstKey = key;
+    }
+  }
+  return worstKey;
+}
+
 /**
  * Décide automatiquement quoi faire avec chaque job en fonction de la météo,
  * de la priorité et de la deadline.
- *
- * @returns {Array<{jobId, client, action, suggestedTime, message, priorityBoost, deadlineBoost}>}
  */
 function rescheduleJobs(jobs, weatherByHour) {
   const hours = Object.keys(weatherByHour);
@@ -244,10 +278,11 @@ function rescheduleJobs(jobs, weatherByHour) {
 
     let bestOk = null;
     let bestRisk = null;
+    let bestAny = null;
 
     for (const hour of hours) {
       const evaluation = evaluateJobWeather(job, weatherByHour[hour]);
-      const adjustedScore = evaluation.score + deadlineBoost + priorityBoost;
+      const adjustedScore = computeAdjustedScore(evaluation.score, priorityBoost, deadlineBoost);
       const candidate = { hour, ...evaluation, adjustedScore };
 
       if (evaluation.status === 'ok' && (!bestOk || adjustedScore > bestOk.adjustedScore)) {
@@ -255,6 +290,9 @@ function rescheduleJobs(jobs, weatherByHour) {
       }
       if (evaluation.status === 'risk' && (!bestRisk || adjustedScore > bestRisk.adjustedScore)) {
         bestRisk = candidate;
+      }
+      if (!bestAny || adjustedScore > bestAny.adjustedScore) {
+        bestAny = candidate;
       }
     }
 
@@ -271,24 +309,26 @@ function rescheduleJobs(jobs, weatherByHour) {
     }
 
     if (bestRisk && isUrgent) {
+      const cause = getMainWeatherIssue(job, weatherByHour[bestRisk.hour]);
       return {
         jobId: job.id,
         client: job.client,
         action: 'maintain',
         suggestedTime: bestRisk.hour,
-        message: `Job urgente maintenue malgré conditions risquées à ${bestRisk.hour}`,
+        message: `Job urgente maintenue malgré conditions risquées (${cause}) à ${bestRisk.hour}`,
         priorityBoost,
         deadlineBoost,
       };
     }
 
     if (bestRisk) {
+      const cause = getMainWeatherIssue(job, weatherByHour[bestRisk.hour]);
       return {
         jobId: job.id,
         client: job.client,
         action: 'risky',
         suggestedTime: bestRisk.hour,
-        message: 'Conditions risquées, à surveiller',
+        message: `Conditions risquées (${cause}) à ${bestRisk.hour}`,
         priorityBoost,
         deadlineBoost,
       };
@@ -298,8 +338,10 @@ function rescheduleJobs(jobs, weatherByHour) {
       jobId: job.id,
       client: job.client,
       action: 'reschedule',
-      suggestedTime: null,
-      message: 'Pluie prévue toute la journée, reporter',
+      suggestedTime: bestAny ? bestAny.hour : null,
+      message: bestAny
+        ? `Conditions mauvaises, meilleur créneau disponible à ${bestAny.hour}`
+        : 'Aucune donnée météo disponible',
       priorityBoost,
       deadlineBoost,
     };
