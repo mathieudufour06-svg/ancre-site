@@ -28,6 +28,7 @@
       --red: #ef4444;   --red-soft: rgba(239,68,68,0.16);
     }
     html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, system-ui, sans-serif;
@@ -40,6 +41,8 @@
       padding: 24px 20px 64px;
       line-height: 1.55; min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.005em;
     }
     body::before {
       content: ''; position: fixed; inset: 0;
@@ -63,6 +66,7 @@
       backdrop-filter: blur(18px) saturate(140%);
       -webkit-backdrop-filter: blur(18px) saturate(140%);
       margin-bottom: 22px;
+      animation: fadeIn 0.4s ease both;
     }
     .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: 0.95rem; }
     .brand-mark {
@@ -112,6 +116,7 @@
       -webkit-backdrop-filter: blur(14px) saturate(130%);
       margin-bottom: 22px;
       position: relative; overflow: hidden;
+      animation: fadeUp 0.5s cubic-bezier(.2,.7,.3,1) both;
     }
     .hero::before {
       content: ''; position: absolute; top: -140px; right: -140px;
@@ -152,22 +157,33 @@
     p.value { color: var(--text-2); margin: 0 0 28px; font-size: 0.95rem; max-width: 640px; }
     .hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     button#runBtn {
+      position: relative; overflow: hidden;
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
       color: white; border: none;
       padding: 15px 30px; font-size: 1rem; font-weight: 600;
       border-radius: 14px; cursor: pointer;
       box-shadow: 0 12px 32px rgba(99,102,241,0.5),
                   inset 0 1px 0 rgba(255,255,255,0.28);
-      transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      transition: transform 0.18s cubic-bezier(.2,.7,.3,1),
+                  box-shadow 0.25s ease, filter 0.2s ease;
       display: inline-flex; align-items: center; gap: 10px;
     }
+    button#runBtn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+    button#runBtn:hover::before { transform: translateX(100%); }
     button#runBtn:hover {
       transform: translateY(-2px); filter: brightness(1.06);
-      box-shadow: 0 16px 42px rgba(99,102,241,0.6),
+      box-shadow: 0 18px 46px rgba(99,102,241,0.6),
                   inset 0 1px 0 rgba(255,255,255,0.28);
     }
+    button#runBtn:active { transform: translateY(0); }
+    button#runBtn:focus-visible { outline: 2px solid #c7d2fe; outline-offset: 3px; }
     button#runBtn::after { content: '→'; font-size: 1.1rem; transition: transform 0.2s ease; }
-    button#runBtn:hover::after { transform: translateX(3px); }
+    button#runBtn:hover::after { transform: translateX(4px); }
     .hero-hint { color: var(--text-3); font-size: 0.85rem; }
 
     /* ============== HOW IT WORKS ============== */
@@ -186,7 +202,11 @@
       -webkit-backdrop-filter: blur(12px);
       transition: border-color 0.2s ease, transform 0.2s ease;
     }
-    .how-step:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-2px); }
+    .how-step { transition: border-color 0.22s ease, transform 0.22s cubic-bezier(.2,.7,.3,1), box-shadow 0.22s ease; }
+    .how-step:hover {
+      border-color: rgba(99,102,241,0.45); transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.3);
+    }
     .how-step .num {
       width: 30px; height: 30px;
       border-radius: 9px;
@@ -213,7 +233,11 @@
       -webkit-backdrop-filter: blur(14px) saturate(130%);
       transition: border-color 0.2s ease, transform 0.2s ease;
     }
-    .stat:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-2px); }
+    .stat { transition: border-color 0.22s ease, transform 0.22s cubic-bezier(.2,.7,.3,1), box-shadow 0.22s ease; }
+    .stat:hover {
+      border-color: rgba(99,102,241,0.45); transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+    }
     .stat-label {
       font-size: 0.78rem; color: var(--text-2);
       text-transform: uppercase; letter-spacing: 0.09em;
@@ -248,6 +272,11 @@
       grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
       gap: 20px;
     }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .job-card {
       position: relative;
       background:
@@ -259,9 +288,18 @@
                   0 18px 44px rgba(0,0,0,0.45);
       backdrop-filter: blur(20px) saturate(140%);
       -webkit-backdrop-filter: blur(20px) saturate(140%);
-      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      transition: transform 0.22s cubic-bezier(.2,.7,.3,1),
+                  border-color 0.22s ease,
+                  box-shadow 0.22s ease;
       overflow: hidden;
+      animation: fadeUp 0.45s cubic-bezier(.2,.7,.3,1) both;
     }
+    .job-card:nth-child(1) { animation-delay: 0.04s; }
+    .job-card:nth-child(2) { animation-delay: 0.10s; }
+    .job-card:nth-child(3) { animation-delay: 0.16s; }
+    .job-card:nth-child(4) { animation-delay: 0.22s; }
+    .job-card:nth-child(5) { animation-delay: 0.28s; }
+    .job-card:nth-child(6) { animation-delay: 0.34s; }
     .job-card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
