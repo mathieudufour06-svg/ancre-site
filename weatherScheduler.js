@@ -354,6 +354,66 @@ function rescheduleJobs(jobs, weatherByHour) {
   return results;
 }
 
+const JOB_TYPE_LABELS = {
+  pose_tourbe: 'pose de tourbe',
+  peinture: 'peinture',
+  pavage: 'pavage',
+  excavation: 'excavation',
+};
+
+function extractReason(message) {
+  if (!message) return null;
+  const match = message.match(/\(([^)]+)\)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Génère un message client clair et professionnel.
+ *
+ * @param {{client: string, type: string}} job
+ * @param {{action: 'maintain'|'risky'|'reschedule', suggestedTime: string, message: string}} decision
+ * @returns {string}
+ */
+function generateClientMessage(job, decision) {
+  const typeLabel = JOB_TYPE_LABELS[job.type] || job.type;
+  const heure = decision.suggestedTime || 'à confirmer';
+  const reason = extractReason(decision.message);
+
+  if (decision.action === 'maintain') {
+    return (
+      `Bonjour M. ${job.client},\n` +
+      `Votre chantier de ${typeLabel} est maintenu à ${heure} comme prévu.\n` +
+      `Cordialement,\nL'équipe SmartPlan`
+    );
+  }
+
+  if (decision.action === 'risky') {
+    const detail = reason ? ` (${reason})` : '';
+    return (
+      `Bonjour M. ${job.client},\n` +
+      `Les conditions météo présentent un risque${detail}.\n` +
+      `Nous pouvons maintenir le chantier de ${typeLabel} à ${heure}, ` +
+      `mais une confirmation de votre part sera nécessaire.\n` +
+      `Cordialement,\nL'équipe SmartPlan`
+    );
+  }
+
+  if (decision.action === 'reschedule') {
+    const detail = reason ? ` (${reason})` : '';
+    const slot = decision.suggestedTime
+      ? `nous vous proposons de déplacer votre chantier au meilleur créneau disponible : ${decision.suggestedTime}.`
+      : `nous vous proposons de reporter votre chantier à une date ultérieure.`;
+    return (
+      `Bonjour M. ${job.client},\n` +
+      `En raison des conditions météo${detail},\n` +
+      `${slot}\n` +
+      `Cordialement,\nL'équipe SmartPlan`
+    );
+  }
+
+  return `Bonjour M. ${job.client},\nNous reviendrons vers vous concernant votre chantier de ${typeLabel}.\nCordialement,\nL'équipe SmartPlan`;
+}
+
 module.exports = {
   evaluateJobWeather,
   suggestSchedule,
@@ -361,6 +421,7 @@ module.exports = {
   rescheduleJobs,
   getPriorityScore,
   getDeadlineUrgency,
+  generateClientMessage,
   setConfig,
   config,
 };
