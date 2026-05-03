@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartPlan – Tableau de bord terrain</title>
+  <title>SmartPlan Météo · Assistant intelligent</title>
   <style>
     * { box-sizing: border-box; }
     :root {
-      --bg-0: #06080f;
-      --bg-1: #0d1220;
-      --bg-2: #131a2c;
-      --bg-3: #1c2540;
-      --border: #232c4a;
-      --border-soft: rgba(255, 255, 255, 0.06);
+      --bg-0: #05070e;
+      --bg-1: #0b1020;
+      --bg-2: #11172a;
+      --glass: rgba(255, 255, 255, 0.04);
+      --glass-strong: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.10);
+      --border-strong: rgba(255, 255, 255, 0.18);
       --text-0: #f8fafc;
       --text-1: #cbd5e1;
       --text-2: #8e9bb5;
@@ -20,95 +21,79 @@
       --accent: #6366f1;
       --accent-2: #8b5cf6;
       --accent-3: #06b6d4;
-      --accent-soft: rgba(99, 102, 241, 0.15);
-      --green: #10b981;
-      --green-soft: rgba(16, 185, 129, 0.14);
-      --amber: #f59e0b;
-      --amber-soft: rgba(245, 158, 11, 0.14);
-      --red: #ef4444;
-      --red-soft: rgba(239, 68, 68, 0.14);
+      --accent-soft: rgba(99,102,241,0.18);
+      --green: #10b981; --green-soft: rgba(16,185,129,0.16);
+      --amber: #f59e0b; --amber-soft: rgba(245,158,11,0.16);
+      --red: #ef4444;   --red-soft: rgba(239,68,68,0.16);
     }
     html, body { height: 100%; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, system-ui, sans-serif;
       background:
-        radial-gradient(1400px 700px at 85% -10%, rgba(139, 92, 246, 0.22), transparent 55%),
-        radial-gradient(1100px 600px at -10% 5%, rgba(6, 182, 212, 0.18), transparent 50%),
-        radial-gradient(900px 500px at 50% 100%, rgba(99, 102, 241, 0.14), transparent 60%),
+        radial-gradient(1500px 800px at 90% -10%, rgba(139,92,246,0.25), transparent 55%),
+        radial-gradient(1100px 600px at -10% 0%, rgba(6,182,212,0.20), transparent 50%),
+        radial-gradient(900px 500px at 50% 110%, rgba(99,102,241,0.16), transparent 60%),
         var(--bg-0);
       color: var(--text-0);
-      padding: 28px 20px 64px;
-      line-height: 1.55;
-      min-height: 100vh;
+      padding: 24px 20px 64px;
+      line-height: 1.55; min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
     body::before {
-      content: '';
-      position: fixed; inset: 0;
+      content: ''; position: fixed; inset: 0;
       background-image:
         linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-      mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 80%);
-      pointer-events: none;
-      z-index: 0;
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at 50% 25%, black 25%, transparent 80%);
+      pointer-events: none; z-index: 0;
     }
-    .container { max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; }
+    .container { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
 
     /* ============== TOP BAR ============== */
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; flex-wrap: wrap;
-      padding: 14px 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      padding: 14px 20px;
+      background: var(--glass);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      backdrop-filter: blur(14px);
+      border-radius: 16px;
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
       margin-bottom: 22px;
     }
-    .brand {
-      display: inline-flex; align-items: center; gap: 12px;
-      font-weight: 700; font-size: 0.95rem;
-      letter-spacing: 0.02em;
-    }
+    .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: 0.95rem; }
     .brand-mark {
-      width: 32px; height: 32px;
-      border-radius: 9px;
+      width: 36px; height: 36px; border-radius: 10px;
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-      display: grid; place-items: center;
-      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 24px rgba(99,102,241,0.45),
+                  inset 0 1px 0 rgba(255,255,255,0.3);
       position: relative;
     }
     .brand-mark::after {
-      content: ''; position: absolute;
-      inset: 4px;
-      border: 2px solid rgba(255,255,255,0.85);
-      border-radius: 4px;
-      border-bottom-color: transparent;
-      border-right-color: transparent;
+      content: ''; position: absolute; inset: 5px;
+      border: 2px solid rgba(255,255,255,0.92); border-radius: 4px;
+      border-bottom-color: transparent; border-right-color: transparent;
       transform: rotate(45deg);
     }
     .brand-name { display: flex; flex-direction: column; line-height: 1.15; }
-    .brand-name b { color: var(--text-0); font-weight: 700; }
-    .brand-name span { color: var(--text-3); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+    .brand-name b { color: var(--text-0); font-weight: 800; letter-spacing: -0.01em; }
+    .brand-name span { color: var(--text-3); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 
     .weather-pill {
       display: inline-flex; align-items: center; gap: 14px;
       padding: 8px 16px;
-      background: rgba(255,255,255,0.04);
+      background: var(--glass-strong);
       border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: 0.88rem;
+      border-radius: 999px; font-size: 0.88rem;
+      backdrop-filter: blur(12px);
     }
     .weather-pill .icon {
-      width: 30px; height: 30px;
-      display: grid; place-items: center;
+      width: 32px; height: 32px; display: grid; place-items: center;
       border-radius: 50%;
       background: linear-gradient(135deg, #fbbf24, #f59e0b);
-      box-shadow: 0 0 16px rgba(251, 191, 36, 0.45);
-      font-size: 0.95rem;
+      box-shadow: 0 0 18px rgba(251,191,36,0.5);
     }
     .weather-pill .meta { display: flex; flex-direction: column; line-height: 1.15; }
     .weather-pill .meta b { color: var(--text-0); font-weight: 600; font-size: 0.92rem; }
@@ -116,131 +101,128 @@
 
     /* ============== HERO ============== */
     .hero {
-      padding: 36px 32px 30px;
-      border-radius: 22px;
+      padding: 38px 36px 32px;
+      border-radius: 24px;
       background:
-        radial-gradient(600px 300px at 100% 0%, rgba(139, 92, 246, 0.18), transparent 60%),
-        linear-gradient(180deg, rgba(99, 102, 241, 0.10), rgba(255,255,255,0.02));
+        radial-gradient(700px 350px at 100% 0%, rgba(139,92,246,0.20), transparent 60%),
+        linear-gradient(180deg, rgba(99,102,241,0.10), rgba(255,255,255,0.02));
       border: 1px solid var(--border);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(14px) saturate(130%);
+      -webkit-backdrop-filter: blur(14px) saturate(130%);
       margin-bottom: 22px;
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
     .hero::before {
-      content: ''; position: absolute; top: -120px; right: -120px;
-      width: 320px; height: 320px;
-      background: radial-gradient(circle, rgba(139,92,246,0.45), transparent 65%);
-      filter: blur(20px);
-      pointer-events: none;
+      content: ''; position: absolute; top: -140px; right: -140px;
+      width: 360px; height: 360px;
+      background: radial-gradient(circle, rgba(139,92,246,0.5), transparent 65%);
+      filter: blur(28px); pointer-events: none;
     }
     .pill {
       display: inline-flex; align-items: center; gap: 10px;
       padding: 6px 14px;
       background: var(--accent-soft);
-      border: 1px solid rgba(99, 102, 241, 0.35);
+      border: 1px solid rgba(99,102,241,0.4);
       border-radius: 999px;
-      font-size: 0.74rem; font-weight: 600;
-      letter-spacing: 0.06em; text-transform: uppercase;
+      font-size: 0.74rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
       color: #c7d2fe; margin-bottom: 18px;
     }
     .pill .dot {
       width: 8px; height: 8px; border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
+      background: var(--accent); box-shadow: 0 0 12px var(--accent);
       animation: pulse 2s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.85); }
-    }
+    @keyframes pulse { 50% { opacity: 0.55; transform: scale(0.8); } }
     h1 {
-      font-size: clamp(1.9rem, 4.2vw, 2.8rem);
-      margin: 0 0 12px;
-      letter-spacing: -0.025em;
+      font-size: clamp(2rem, 4.4vw, 3rem);
+      margin: 0 0 12px; letter-spacing: -0.03em;
       background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 60%, #a5b4fc 100%);
       -webkit-background-clip: text; background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-weight: 800;
-      line-height: 1.1;
+      font-weight: 800; line-height: 1.05;
     }
-    p.lead {
+    p.subtitle {
       color: var(--text-1);
-      margin: 0 0 4px;
-      font-size: 1.05rem;
-      max-width: 640px;
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+      max-width: 660px;
     }
-    p.value {
-      color: var(--text-2);
-      margin: 0 0 26px;
-      font-size: 0.95rem;
-      max-width: 640px;
-    }
+    p.value { color: var(--text-2); margin: 0 0 28px; font-size: 0.95rem; max-width: 640px; }
     .hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     button#runBtn {
-      position: relative;
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
       color: white; border: none;
-      padding: 14px 28px; font-size: 1rem; font-weight: 600;
-      border-radius: 12px; cursor: pointer; letter-spacing: 0.01em;
-      box-shadow: 0 10px 28px rgba(99, 102, 241, 0.45),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      padding: 15px 30px; font-size: 1rem; font-weight: 600;
+      border-radius: 14px; cursor: pointer;
+      box-shadow: 0 12px 32px rgba(99,102,241,0.5),
+                  inset 0 1px 0 rgba(255,255,255,0.28);
       transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
       display: inline-flex; align-items: center; gap: 10px;
     }
     button#runBtn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 36px rgba(99, 102, 241, 0.55),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.25);
-      filter: brightness(1.06);
+      transform: translateY(-2px); filter: brightness(1.06);
+      box-shadow: 0 16px 42px rgba(99,102,241,0.6),
+                  inset 0 1px 0 rgba(255,255,255,0.28);
     }
-    button#runBtn:active { transform: translateY(0); }
     button#runBtn::after { content: '→'; font-size: 1.1rem; transition: transform 0.2s ease; }
     button#runBtn:hover::after { transform: translateX(3px); }
     .hero-hint { color: var(--text-3); font-size: 0.85rem; }
-    .hero-hint kbd {
-      background: rgba(255,255,255,0.06);
-      padding: 2px 7px; border-radius: 5px;
-      border: 1px solid var(--border);
-      font-size: 0.78rem; color: var(--text-1);
+
+    /* ============== HOW IT WORKS ============== */
+    .how {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 24px;
     }
+    .how-step {
+      position: relative;
+      padding: 18px 18px 16px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .how-step:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-2px); }
+    .how-step .num {
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 0.85rem; color: white;
+      margin-bottom: 10px;
+      box-shadow: 0 6px 18px rgba(99,102,241,0.4);
+    }
+    .how-step h4 { margin: 0 0 4px; font-size: 0.98rem; font-weight: 700; }
+    .how-step p { margin: 0; font-size: 0.85rem; color: var(--text-2); }
 
     /* ============== STATS ============== */
     .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 14px; margin-bottom: 26px;
     }
     .stat {
-      position: relative;
-      padding: 18px 18px 16px;
-      background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      padding: 20px 20px 18px;
+      background: var(--glass);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
+      border-radius: 16px;
+      backdrop-filter: blur(14px) saturate(130%);
+      -webkit-backdrop-filter: blur(14px) saturate(130%);
       transition: border-color 0.2s ease, transform 0.2s ease;
     }
-    .stat:hover { border-color: rgba(99,102,241,0.35); transform: translateY(-1px); }
+    .stat:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-2px); }
     .stat-label {
-      font-size: 0.78rem;
-      color: var(--text-2);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 600;
-      margin-bottom: 8px;
+      font-size: 0.78rem; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.09em;
+      font-weight: 700; margin-bottom: 10px;
       display: flex; align-items: center; gap: 8px;
     }
-    .stat-label .ind {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--text-3);
-    }
+    .stat-label .ind { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
     .stat-value {
-      font-size: 2.1rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--text-0);
-      line-height: 1;
+      font-size: 2.2rem; font-weight: 800;
+      letter-spacing: -0.025em; color: var(--text-0); line-height: 1;
     }
     .stat-sub { color: var(--text-3); font-size: 0.78rem; margin-top: 6px; }
     .stat.total .ind     { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
@@ -256,171 +238,173 @@
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; margin: 8px 4px 14px; flex-wrap: wrap;
     }
-    .section-head h3 {
-      margin: 0; font-size: 1.05rem; font-weight: 700;
-      letter-spacing: -0.01em; color: var(--text-0);
-    }
+    .section-head h3 { margin: 0; font-size: 1.08rem; font-weight: 700; letter-spacing: -0.01em; }
     .section-head .sub { color: var(--text-3); font-size: 0.85rem; }
 
     /* ============== CARDS ============== */
     #results {
-      margin-top: 6px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 20px;
     }
     .job-card {
       position: relative;
-      background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 100%);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 22px 22px 20px;
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
-                  0 14px 36px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset,
+                  0 18px 44px rgba(0,0,0,0.45);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
       transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
       overflow: hidden;
     }
     .job-card::before {
-      content: ''; position: absolute;
-      top: 0; left: 0; right: 0; height: 3px;
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
-      opacity: 0.7;
+      opacity: 0.75;
     }
     .job-card:hover {
       transform: translateY(-3px);
-      border-color: rgba(99, 102, 241, 0.5);
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset,
-                  0 18px 44px rgba(0, 0, 0, 0.55);
+      border-color: rgba(99,102,241,0.55);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset,
+                  0 22px 54px rgba(0,0,0,0.55);
     }
     .job-header {
       margin-bottom: 14px;
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 12px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
     }
-    .job-header h2 {
-      margin: 0 0 4px; font-size: 1.18rem; color: var(--text-0);
-      font-weight: 700; letter-spacing: -0.01em;
-    }
-    .job-header .type {
-      color: var(--text-2); font-size: 0.85rem;
-      text-transform: capitalize;
-    }
-    .job-avatar {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.25));
-      border: 1px solid rgba(99, 102, 241, 0.35);
+    .job-header h2 { margin: 0 0 4px; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
+    .job-header .type { color: var(--text-2); font-size: 0.86rem; text-transform: capitalize; }
+
+    .job-icon {
+      width: 46px; height: 46px; border-radius: 14px;
       display: grid; place-items: center;
-      font-weight: 700; color: #e0e7ff;
-      font-size: 0.95rem;
-      letter-spacing: 0.02em;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.18));
+      border: 1px solid rgba(99,102,241,0.35);
+    }
+    .job-icon.maintain   { background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(16,185,129,0.1)); border-color: rgba(16,185,129,0.4); }
+    .job-icon.risky      { background: linear-gradient(135deg, rgba(245,158,11,0.3), rgba(245,158,11,0.1)); border-color: rgba(245,158,11,0.4); }
+    .job-icon.reschedule { background: linear-gradient(135deg, rgba(239,68,68,0.3), rgba(239,68,68,0.1)); border-color: rgba(239,68,68,0.4); }
+
+    .score-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .score-label {
+      font-size: 0.72rem; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700;
       flex-shrink: 0;
     }
+    .score-bar {
+      flex: 1; height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px; overflow: hidden;
+      position: relative;
+    }
+    .score-fill {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.4s ease;
+    }
+    .score-fill.good { background: linear-gradient(90deg, #10b981, #34d399); }
+    .score-fill.mid  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .score-fill.bad  { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .score-value { font-weight: 700; font-size: 0.9rem; color: var(--text-0); flex-shrink: 0; }
+
     .decision {
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px solid var(--border-soft);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px 14px;
       margin-bottom: 14px;
-      font-size: 0.88rem;
-      color: var(--text-1);
+      font-size: 0.88rem; color: var(--text-1);
     }
-    .decision div {
-      margin: 5px 0;
-      display: flex; flex-wrap: wrap; gap: 8px;
-      align-items: center;
-    }
+    .decision div { margin: 5px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .badge {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 11px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
+      padding: 4px 11px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
       border: 1px solid transparent;
     }
     .badge::before {
       content: ''; width: 6px; height: 6px; border-radius: 50%;
-      background: currentColor;
-      box-shadow: 0 0 10px currentColor;
+      background: currentColor; box-shadow: 0 0 10px currentColor;
     }
-    .badge.maintain   { background: var(--green-soft); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
-    .badge.risky      { background: var(--amber-soft); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
-    .badge.reschedule { background: var(--red-soft); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+    .badge.maintain   { background: var(--green-soft); color: #34d399; border-color: rgba(16,185,129,0.45); }
+    .badge.risky      { background: var(--amber-soft); color: #fbbf24; border-color: rgba(245,158,11,0.45); }
+    .badge.reschedule { background: var(--red-soft);   color: #f87171; border-color: rgba(239,68,68,0.45); }
 
     .client-msg-block {
-      margin-top: 12px;
-      padding: 10px 0 0;
-      border-top: 1px dashed var(--border);
+      margin-top: 14px;
+      padding: 14px 14px 12px;
+      background: rgba(99,102,241,0.06);
+      border: 1px solid rgba(99,102,241,0.22);
+      border-radius: 14px;
     }
     .client-msg-label {
-      font-size: 0.7rem;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-size: 0.7rem; color: #c7d2fe;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-weight: 700; margin-bottom: 10px;
       display: flex; align-items: center; gap: 8px;
     }
     .client-msg-label::before {
-      content: ''; width: 14px; height: 1px; background: var(--text-3);
+      content: '✉'; font-size: 0.85rem;
     }
     .client-msg {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.06));
+      background: linear-gradient(135deg, rgba(99,102,241,0.16), rgba(139,92,246,0.08));
       border-left: 3px solid var(--accent);
       padding: 14px 16px;
       border-radius: 10px;
-      font-weight: 500;
-      white-space: pre-line;
-      font-size: 0.94rem;
-      color: var(--text-0);
-      line-height: 1.65;
+      font-weight: 500; white-space: pre-line;
+      font-size: 0.94rem; color: var(--text-0); line-height: 1.65;
     }
 
     /* ============== EMPTY STATE ============== */
     .empty {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 50px 20px;
+      grid-column: 1 / -1; text-align: center; padding: 56px 20px;
       color: var(--text-3);
-      border: 1px dashed var(--border);
-      border-radius: 16px;
+      border: 1px dashed var(--border-strong);
+      border-radius: 18px;
       background: rgba(255,255,255,0.02);
+      backdrop-filter: blur(12px);
     }
     .empty-icon {
-      width: 56px; height: 56px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.12));
+      width: 60px; height: 60px; border-radius: 16px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.14));
       border: 1px solid var(--border);
       display: grid; place-items: center;
-      margin: 0 auto 14px;
-      font-size: 1.4rem;
+      margin: 0 auto 14px; font-size: 1.6rem;
     }
     .empty h4 { color: var(--text-1); margin: 0 0 6px; font-weight: 600; }
-    .empty p { margin: 0; font-size: 0.9rem; }
+    .empty p { margin: 0; font-size: 0.92rem; }
 
-    /* ============== FOOTER ============== */
-    footer {
-      margin-top: 36px;
-      padding: 18px;
-      text-align: center;
-      color: var(--text-3);
-      font-size: 0.82rem;
-    }
+    footer { margin-top: 36px; padding: 18px; text-align: center; color: var(--text-3); font-size: 0.82rem; }
     footer span { color: var(--text-2); }
 
     /* ============== RESPONSIVE ============== */
     @media (max-width: 900px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
+      .how { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
       body { padding: 18px 14px 48px; }
       .topbar { padding: 12px 14px; }
-      .hero { padding: 26px 22px; border-radius: 18px; }
-      h1 { font-size: 1.7rem; }
+      .hero { padding: 28px 22px; border-radius: 20px; }
+      h1 { font-size: 1.85rem; }
       button#runBtn { width: 100%; justify-content: center; }
       #results { grid-template-columns: 1fr; gap: 14px; }
-      .job-card { padding: 18px; }
+      .job-card { padding: 18px; border-radius: 18px; }
       .stat-value { font-size: 1.7rem; }
     }
   </style>
@@ -432,7 +416,7 @@
       <div class="brand">
         <div class="brand-mark"></div>
         <div class="brand-name">
-          <b>SmartPlan</b>
+          <b>SmartPlan Météo</b>
           <span>Outil terrain intelligent</span>
         </div>
       </div>
@@ -447,12 +431,34 @@
 
     <div class="hero">
       <div class="pill"><span class="dot"></span>Démo · Simulation locale</div>
-      <h1>Planification intelligente</h1>
-      <p class="lead">Jobs → Météo → Décisions → Messages clients.</p>
+      <h1>SmartPlan Météo</h1>
+      <p class="subtitle">Assistant intelligent pour planifier les travaux extérieurs selon la météo.</p>
       <p class="value">Planification intelligente selon la météo, les priorités et les messages clients.</p>
       <div class="hero-actions">
         <button id="runBtn">Lancer la simulation</button>
         <span class="hero-hint">Optimisé pour le terrain — fonctionne hors-ligne.</span>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h3>Comment ça marche</h3>
+      <span class="sub">3 étapes automatiques</span>
+    </div>
+    <div class="how">
+      <div class="how-step">
+        <div class="num">1</div>
+        <h4>Analyse météo</h4>
+        <p>Évalue chaque créneau horaire selon la pluie, le vent, la température et l'humidité.</p>
+      </div>
+      <div class="how-step">
+        <div class="num">2</div>
+        <h4>Priorise les jobs</h4>
+        <p>Croise la météo avec la priorité du chantier et la deadline pour décider la meilleure action.</p>
+      </div>
+      <div class="how-step">
+        <div class="num">3</div>
+        <h4>Génère le message client</h4>
+        <p>Produit un message professionnel prêt à envoyer pour confirmer, alerter ou reporter.</p>
       </div>
     </div>
 
@@ -492,9 +498,7 @@
       </div>
     </div>
 
-    <footer>
-      <span>SmartPlan</span> · Aide les équipes terrain à décider rapidement, malgré la météo.
-    </footer>
+    <footer><span>SmartPlan Météo</span> · Aide les équipes terrain à décider rapidement, malgré la météo.</footer>
   </div>
 
   <script>
@@ -536,6 +540,7 @@
       pavage: 'pavage',
       excavation: 'excavation',
     };
+    const ACTION_ICONS = { maintain: '✅', risky: '⚠️', reschedule: '🌧️' };
 
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
     function scoreUnderMax(value, max) {
@@ -673,10 +678,6 @@
       })[c]);
     }
 
-    function getInitials(name) {
-      return String(name || '').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '·';
-    }
-
     function updateStats(decisions) {
       const total = decisions.length;
       const maintain = decisions.filter(d => d.action === 'maintain').length;
@@ -696,13 +697,17 @@
       const maxRain = Math.max(...w.map(s => s.rainProbability));
       const desc = maxRain >= 60
         ? 'Matin clair · pluie probable PM'
-        : maxRain >= 30
-          ? 'Variable · averses possibles'
-          : 'Journée stable';
+        : maxRain >= 30 ? 'Variable · averses possibles' : 'Journée stable';
       document.getElementById('weatherTemp').textContent = `${minT}° → ${maxT}°C`;
       document.getElementById('weatherDesc').textContent = desc;
     }
     renderWeatherSummary();
+
+    function scoreBarClass(score) {
+      if (score >= 75) return 'good';
+      if (score >= 50) return 'mid';
+      return 'bad';
+    }
 
     function runSimulation() {
       const weather = getMockWeather();
@@ -717,6 +722,12 @@
         const job = jobs.find(j => j.id === d.jobId);
         const msg = generateClientMessage(job, d);
 
+        // Score météo recalculé pour le créneau choisi (données déjà calculées par evaluateJobWeather)
+        const slotWeather = d.suggestedTime ? weatherByHour[d.suggestedTime] : null;
+        const meteoScore = slotWeather ? evaluateJobWeather(job, slotWeather).score : 0;
+        const scoreCls = scoreBarClass(meteoScore);
+        const icon = ACTION_ICONS[d.action] || '•';
+
         const card = document.createElement('div');
         card.className = 'job-card';
         card.innerHTML = `
@@ -725,7 +736,12 @@
               <h2>${escapeHtml(job.client)}</h2>
               <div class="type">${escapeHtml(TYPE_LABELS[job.type] || job.type)} — priorité ${escapeHtml(job.priority)}</div>
             </div>
-            <div class="job-avatar">${escapeHtml(getInitials(job.client))}</div>
+            <div class="job-icon ${d.action}">${icon}</div>
+          </div>
+          <div class="score-row">
+            <div class="score-label">Score météo</div>
+            <div class="score-bar"><div class="score-fill ${scoreCls}" style="width:${meteoScore}%"></div></div>
+            <div class="score-value">${meteoScore}/100</div>
           </div>
           <div class="decision">
             <div>→ Action : <span class="badge ${d.action}">${escapeHtml(d.action)}</span></div>
@@ -733,7 +749,7 @@
             <div>→ Message technique : ${escapeHtml(d.message)}</div>
           </div>
           <div class="client-msg-block">
-            <div class="client-msg-label">Message client</div>
+            <div class="client-msg-label">Message client prêt à envoyer</div>
             <div class="client-msg">${escapeHtml(msg)}</div>
           </div>
         `;
