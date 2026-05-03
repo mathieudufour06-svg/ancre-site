@@ -1,0 +1,174 @@
+/**
+ * weatherScheduler.js
+ *
+ * Moteur météo pour SmartPlan MVP.
+ * Évalue si un travail extérieur peut être exécuté selon les conditions météo
+ * et propose la meilleure heure d'exécution.
+ */
+
+// --- Règles météo par type de travail -----------------------------------
+
+const JOB_RULES = {
+  pose_tourbe: {
+    maxRainProbability: 30,   // %
+    maxWindKmh: 40,
+    minTemperature: 5,        // °C
+    maxTemperature: 30,
+    maxHumidity: 90,          // %
+  },
+  peinture: {
+    maxRainProbability: 10,
+    maxWindKmh: 25,
+    minTemperature: 10,
+    maxTemperature: 32,
+    maxHumidity: 70,
+  },
+  pavage: {
+    maxRainProbability: 20,
+    maxWindKmh: 50,
+    minTemperature: 5,
+    maxTemperature: 35,
+    maxHumidity: 95,
+  },
+  excavation: {
+    maxRainProbability: 50,
+    maxWindKmh: 60,
+    minTemperature: -5,
+    maxTemperature: 35,
+    maxHumidity: 100,
+  },
+};
+
+// Pondérations utilisées pour calculer le score (sur 100)
+const WEIGHTS = {
+  rain: 40,
+  wind: 25,
+  temperature: 20,
+  humidity: 15,
+};
+
+// --- Helpers ------------------------------------------------------------
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Retourne un sous-score entre 0 et 1 pour une valeur comparée à un seuil max.
+ * 0 = bien au-dessus du seuil (mauvais), 1 = bien en-dessous (bon).
+ */
+function scoreUnderMax(value, max) {
+  if (value <= 0) return 1;
+  if (value >= max) {
+    // pénalité progressive au-delà du seuil
+    const over = (value - max) / max;
+    return clamp(1 - over - 1, 0, 1); // toujours <= 0 → ramené à 0
+  }
+  return clamp(1 - value / max, 0, 1);
+}
+
+/**
+ * Sous-score pour la température : 1 si dans la plage idéale,
+ * décroît à mesure qu'on s'en éloigne.
+ */
+function scoreTemperature(temp, min, max) {
+  if (temp >= min && temp <= max) return 1;
+  const distance = temp < min ? min - temp : temp - max;
+  return clamp(1 - distance / 10, 0, 1);
+}
+
+// --- API ----------------------------------------------------------------
+
+/**
+ * Évalue les conditions météo pour un job donné.
+ *
+ * @param {{id: string|number, client: string, type: string}} job
+ * @param {{rainProbability: number, windKmh: number, temperature: number, humidity: number}} weather
+ * @returns {{status: 'ok'|'risk'|'bad', score: number, reason: string}}
+ */
+function evaluateJobWeather(job, weather) {
+  const rules = JOB_RULES[job.type];
+  if (!rules) {
+    return {
+      status: 'bad',
+      score: 0,
+      reason: `Type de travail inconnu : ${job.type}`,
+    };
+  }
+
+  const rainScore = scoreUnderMax(weather.rainProbability, rules.maxRainProbability);
+  const windScore = scoreUnderMax(weather.windKmh, rules.maxWindKmh);
+  const tempScore = scoreTemperature(weather.temperature, rules.minTemperature, rules.maxTemperature);
+  const humidityScore = scoreUnderMax(weather.humidity, rules.maxHumidity);
+
+  const score = Math.round(
+    rainScore * WEIGHTS.rain +
+    windScore * WEIGHTS.wind +
+    tempScore * WEIGHTS.temperature +
+    humidityScore * WEIGHTS.humidity
+  );
+
+  const reasons = [];
+  if (weather.rainProbability > rules.maxRainProbability) {
+    reasons.push(`pluie ${weather.rainProbability}% > ${rules.maxRainProbability}%`);
+  }
+  if (weather.windKmh > rules.maxWindKmh) {
+    reasons.push(`vent ${weather.windKmh}km/h > ${rules.maxWindKmh}km/h`);
+  }
+  if (weather.temperature < rules.minTemperature || weather.temperature > rules.maxTemperature) {
+    reasons.push(`température ${weather.temperature}°C hors plage ${rules.minTemperature}–${rules.maxTemperature}°C`);
+  }
+  if (weather.humidity > rules.maxHumidity) {
+    reasons.push(`humidité ${weather.humidity}% > ${rules.maxHumidity}%`);
+  }
+
+  let status;
+  if (score >= 75) status = 'ok';
+  else if (score >= 50) status = 'risk';
+  else status = 'bad';
+
+  const reason = reasons.length === 0
+    ? 'Conditions favorables'
+    : reasons.join(', ');
+
+  return { status, score, reason };
+}
+
+/**
+ * Suggère la meilleure heure d'exécution pour chaque job.
+ *
+ * @param {Array} jobs - liste de jobs
+ * @param {Object<string|number, Object>} weatherByHour - météo indexée par heure
+ *        ex : { 8: { rainProbability, windKmh, temperature, humidity }, 9: {...} }
+ * @returns {Array<{jobId, client, type, bestHour, status, score, reason}>}
+ */
+function suggestSchedule(jobs, weatherByHour) {
+  const hours = Object.keys(weatherByHour);
+
+  return jobs.map((job) => {
+    let best = null;
+
+    for (const hour of hours) {
+      const evaluation = evaluateJobWeather(job, weatherByHour[hour]);
+      if (!best || evaluation.score > best.score) {
+        best = { hour, ...evaluation };
+      }
+    }
+
+    return {
+      jobId: job.id,
+      client: job.client,
+      type: job.type,
+      bestHour: best ? best.hour : null,
+      status: best ? best.status : 'bad',
+      score: best ? best.score : 0,
+      reason: best ? best.reason : 'Aucune donnée météo disponible',
+    };
+  });
+}
+
+module.exports = {
+  evaluateJobWeather,
+  suggestSchedule,
+  JOB_RULES,
+};
