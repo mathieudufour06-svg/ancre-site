@@ -4,48 +4,39 @@
  * Moteur météo pour SmartPlan MVP.
  * Évalue si un travail extérieur peut être exécuté selon les conditions météo
  * et propose la meilleure heure d'exécution.
+ *
+ * Les règles et pondérations sont chargées depuis weatherConfig.js
+ * et peuvent être surchargées à l'exécution via setConfig().
  */
 
-// --- Règles météo par type de travail -----------------------------------
+const defaultConfig = require('./weatherConfig');
 
-const JOB_RULES = {
-  pose_tourbe: {
-    maxRainProbability: 30,   // %
-    maxWindKmh: 40,
-    minTemperature: 5,        // °C
-    maxTemperature: 30,
-    maxHumidity: 90,          // %
-  },
-  peinture: {
-    maxRainProbability: 10,
-    maxWindKmh: 25,
-    minTemperature: 10,
-    maxTemperature: 32,
-    maxHumidity: 70,
-  },
-  pavage: {
-    maxRainProbability: 20,
-    maxWindKmh: 50,
-    minTemperature: 5,
-    maxTemperature: 35,
-    maxHumidity: 95,
-  },
-  excavation: {
-    maxRainProbability: 50,
-    maxWindKmh: 60,
-    minTemperature: -5,
-    maxTemperature: 35,
-    maxHumidity: 100,
-  },
+// Config active (modifiable via setConfig)
+let config = {
+  rules: { ...defaultConfig.JOB_RULES },
+  weights: { ...defaultConfig.JOB_WEIGHTS },
+  defaultWeights: { ...defaultConfig.DEFAULT_WEIGHTS },
 };
 
-// Pondérations utilisées pour calculer le score (sur 100)
-const WEIGHTS = {
-  rain: 40,
-  wind: 25,
-  temperature: 20,
-  humidity: 15,
-};
+/**
+ * Surcharge tout ou partie de la configuration.
+ * Les clés non fournies conservent leur valeur courante.
+ *
+ * @param {{rules?: object, weights?: object, defaultWeights?: object}} newConfig
+ */
+function setConfig(newConfig = {}) {
+  if (newConfig.rules) config.rules = { ...config.rules, ...newConfig.rules };
+  if (newConfig.weights) config.weights = { ...config.weights, ...newConfig.weights };
+  if (newConfig.defaultWeights) config.defaultWeights = { ...config.defaultWeights, ...newConfig.defaultWeights };
+}
+
+function getRules(type) {
+  return config.rules[type];
+}
+
+function getWeights(type) {
+  return config.weights[type] || config.defaultWeights;
+}
 
 // --- Helpers ------------------------------------------------------------
 
@@ -87,7 +78,7 @@ function scoreTemperature(temp, min, max) {
  * @returns {{status: 'ok'|'risk'|'bad', score: number, reason: string}}
  */
 function evaluateJobWeather(job, weather) {
-  const rules = JOB_RULES[job.type];
+  const rules = getRules(job.type);
   if (!rules) {
     return {
       status: 'bad',
@@ -96,16 +87,18 @@ function evaluateJobWeather(job, weather) {
     };
   }
 
+  const weights = getWeights(job.type);
+
   const rainScore = scoreUnderMax(weather.rainProbability, rules.maxRainProbability);
   const windScore = scoreUnderMax(weather.windKmh, rules.maxWindKmh);
   const tempScore = scoreTemperature(weather.temperature, rules.minTemperature, rules.maxTemperature);
   const humidityScore = scoreUnderMax(weather.humidity, rules.maxHumidity);
 
   const score = Math.round(
-    rainScore * WEIGHTS.rain +
-    windScore * WEIGHTS.wind +
-    tempScore * WEIGHTS.temperature +
-    humidityScore * WEIGHTS.humidity
+    rainScore * weights.rain +
+    windScore * weights.wind +
+    tempScore * weights.temperature +
+    humidityScore * weights.humidity
   );
 
   const reasons = [];
@@ -167,8 +160,54 @@ function suggestSchedule(jobs, weatherByHour) {
   });
 }
 
+/**
+ * Retourne le détail des sous-scores pondérés pour un job donné.
+ * Utile pour comprendre POURQUOI une job est acceptée ou refusée.
+ *
+ * @param {{id: string|number, client: string, type: string}} job
+ * @param {{rainProbability: number, windKmh: number, temperature: number, humidity: number}} weather
+ * @returns {{rainScore, windScore, temperatureScore, humidityScore, totalScore}}
+ */
+function getWeatherScoreBreakdown(job, weather) {
+  const rules = getRules(job.type);
+  if (!rules) {
+    return {
+      rainScore: 0,
+      windScore: 0,
+      temperatureScore: 0,
+      humidityScore: 0,
+      totalScore: 0,
+    };
+  }
+
+  const weights = getWeights(job.type);
+
+  const rainScore = Math.round(
+    scoreUnderMax(weather.rainProbability, rules.maxRainProbability) * weights.rain
+  );
+  const windScore = Math.round(
+    scoreUnderMax(weather.windKmh, rules.maxWindKmh) * weights.wind
+  );
+  const temperatureScore = Math.round(
+    scoreTemperature(weather.temperature, rules.minTemperature, rules.maxTemperature) * weights.temperature
+  );
+  const humidityScore = Math.round(
+    scoreUnderMax(weather.humidity, rules.maxHumidity) * weights.humidity
+  );
+
+  return {
+    rainScore,
+    windScore,
+    temperatureScore,
+    humidityScore,
+    totalScore: rainScore + windScore + temperatureScore + humidityScore,
+  };
+}
+
 module.exports = {
   evaluateJobWeather,
   suggestSchedule,
-  JOB_RULES,
+  getWeatherScoreBreakdown,
+  setConfig,
+  config,
 };
