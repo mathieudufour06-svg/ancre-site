@@ -6,98 +6,236 @@
   <title>SmartPlan – Simulation</title>
   <style>
     * { box-sizing: border-box; }
+    :root {
+      --bg-0: #0a0e1a;
+      --bg-1: #111827;
+      --bg-2: #1a2235;
+      --bg-3: #232c44;
+      --border: #2a3550;
+      --text-0: #f8fafc;
+      --text-1: #cbd5e1;
+      --text-2: #94a3b8;
+      --accent: #6366f1;
+      --accent-2: #8b5cf6;
+      --accent-soft: rgba(99, 102, 241, 0.15);
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+    html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f5f7fa;
-      color: #1f2937;
-      padding: 20px;
-      line-height: 1.5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(139, 92, 246, 0.18), transparent 60%),
+        radial-gradient(900px 500px at -10% 10%, rgba(99, 102, 241, 0.20), transparent 55%),
+        var(--bg-0);
+      color: var(--text-0);
+      padding: 32px 20px 64px;
+      line-height: 1.55;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
     .container {
-      max-width: 720px;
+      max-width: 1080px;
       margin: 0 auto;
     }
-    h1 {
-      font-size: 1.6rem;
-      margin: 0 0 8px;
-      color: #111827;
+    .hero {
+      padding: 32px 28px 28px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06));
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      margin-bottom: 28px;
     }
-    p.lead {
-      color: #4b5563;
-      margin: 0 0 20px;
-    }
-    button#runBtn {
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-      max-width: 280px;
-    }
-    button#runBtn:hover { background: #1d4ed8; }
-    #results { margin-top: 24px; }
-    .job-card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      padding: 18px;
-      margin-bottom: 16px;
-    }
-    .job-header { margin-bottom: 12px; }
-    .job-header h2 {
-      margin: 0;
-      font-size: 1.15rem;
-      color: #111827;
-    }
-    .job-header .type {
-      color: #6b7280;
-      font-size: 0.9rem;
-    }
-    .decision {
-      background: #f3f4f6;
-      border-radius: 6px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      font-size: 0.92rem;
-    }
-    .decision div { margin: 2px 0; }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 999px;
       font-size: 0.78rem;
       font-weight: 600;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
+      color: #c7d2fe;
+      margin-bottom: 16px;
     }
-    .badge.maintain  { background: #d1fae5; color: #065f46; }
-    .badge.risky     { background: #fef3c7; color: #92400e; }
-    .badge.reschedule { background: #fee2e2; color: #991b1b; }
-    .client-msg {
-      background: #eff6ff;
-      border-left: 4px solid #2563eb;
+    .brand .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      margin: 0 0 10px;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+    p.lead {
+      color: var(--text-1);
+      margin: 0 0 6px;
+      font-size: 1.05rem;
+      max-width: 620px;
+    }
+    p.value {
+      color: var(--text-2);
+      margin: 0 0 24px;
+      font-size: 0.95rem;
+      max-width: 620px;
+    }
+    button#runBtn {
+      position: relative;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      color: white;
+      border: none;
+      padding: 14px 26px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      box-shadow:
+        0 8px 20px rgba(99, 102, 241, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    button#runBtn:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 12px 28px rgba(99, 102, 241, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      filter: brightness(1.05);
+    }
+    button#runBtn:active { transform: translateY(0); }
+    button#runBtn::after {
+      content: '→';
+      font-size: 1.1rem;
+      transition: transform 0.2s ease;
+    }
+    button#runBtn:hover::after { transform: translateX(3px); }
+
+    #results {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+    .job-card {
+      position: relative;
+      background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 10px 30px rgba(0, 0, 0, 0.35);
+      transition: transform 0.18s ease, border-color 0.18s ease;
+      overflow: hidden;
+    }
+    .job-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      opacity: 0.6;
+    }
+    .job-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.45);
+    }
+    .job-header { margin-bottom: 14px; }
+    .job-header h2 {
+      margin: 0 0 4px;
+      font-size: 1.2rem;
+      color: var(--text-0);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .job-header .type {
+      color: var(--text-2);
+      font-size: 0.88rem;
+      text-transform: capitalize;
+    }
+    .decision {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
       padding: 12px 14px;
-      border-radius: 4px;
+      margin-bottom: 14px;
+      font-size: 0.9rem;
+      color: var(--text-1);
+    }
+    .decision div {
+      margin: 4px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .decision div strong { color: var(--text-2); font-weight: 500; min-width: 0; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid transparent;
+    }
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .badge.maintain   { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.35); }
+    .badge.risky      { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35); }
+    .badge.reschedule { background: rgba(239, 68, 68, 0.15);  color: #f87171; border-color: rgba(239, 68, 68, 0.35); }
+
+    .client-msg {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06));
+      border-left: 3px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 10px;
       font-weight: 500;
       white-space: pre-line;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      color: var(--text-0);
+      line-height: 1.6;
     }
-    @media (max-width: 480px) {
-      body { padding: 12px; }
-      h1 { font-size: 1.35rem; }
-      .job-card { padding: 14px; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 14px 48px; }
+      .hero { padding: 24px 20px; border-radius: 16px; }
+      h1 { font-size: 1.7rem; }
+      button#runBtn { width: 100%; justify-content: center; }
+      #results { grid-template-columns: 1fr; gap: 14px; }
+      .job-card { padding: 18px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>SmartPlan – Simulation</h1>
-    <p class="lead">Jobs → Météo → Décisions → Messages clients</p>
-    <button id="runBtn">Lancer la simulation</button>
+    <div class="hero">
+      <div class="brand"><span class="dot"></span>SmartPlan</div>
+      <h1>Planification intelligente</h1>
+      <p class="lead">Jobs → Météo → Décisions → Messages clients</p>
+      <p class="value">Planification intelligente selon la météo, les priorités et les messages clients.</p>
+      <button id="runBtn">Lancer la simulation</button>
+    </div>
     <div id="results"></div>
   </div>
 
