@@ -3,244 +3,501 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartPlan – Simulation</title>
+  <title>SmartPlan – Tableau de bord terrain</title>
   <style>
     * { box-sizing: border-box; }
     :root {
-      --bg-0: #0a0e1a;
-      --bg-1: #111827;
-      --bg-2: #1a2235;
-      --bg-3: #232c44;
-      --border: #2a3550;
+      --bg-0: #06080f;
+      --bg-1: #0d1220;
+      --bg-2: #131a2c;
+      --bg-3: #1c2540;
+      --border: #232c4a;
+      --border-soft: rgba(255, 255, 255, 0.06);
       --text-0: #f8fafc;
       --text-1: #cbd5e1;
-      --text-2: #94a3b8;
+      --text-2: #8e9bb5;
+      --text-3: #64748b;
       --accent: #6366f1;
       --accent-2: #8b5cf6;
+      --accent-3: #06b6d4;
       --accent-soft: rgba(99, 102, 241, 0.15);
       --green: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.14);
       --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.14);
       --red: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.14);
     }
     html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, system-ui, sans-serif;
       background:
-        radial-gradient(1200px 600px at 80% -10%, rgba(139, 92, 246, 0.18), transparent 60%),
-        radial-gradient(900px 500px at -10% 10%, rgba(99, 102, 241, 0.20), transparent 55%),
+        radial-gradient(1400px 700px at 85% -10%, rgba(139, 92, 246, 0.22), transparent 55%),
+        radial-gradient(1100px 600px at -10% 5%, rgba(6, 182, 212, 0.18), transparent 50%),
+        radial-gradient(900px 500px at 50% 100%, rgba(99, 102, 241, 0.14), transparent 60%),
         var(--bg-0);
       color: var(--text-0);
-      padding: 32px 20px 64px;
+      padding: 28px 20px 64px;
       line-height: 1.55;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
-    .container {
-      max-width: 1080px;
-      margin: 0 auto;
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
     }
-    .hero {
-      padding: 32px 28px 28px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06));
+    .container { max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; }
+
+    /* ============== TOP BAR ============== */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+      padding: 14px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
       border: 1px solid var(--border);
-      backdrop-filter: blur(8px);
-      margin-bottom: 28px;
+      border-radius: 14px;
+      backdrop-filter: blur(14px);
+      margin-bottom: 22px;
     }
     .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6px 12px;
-      background: var(--accent-soft);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #c7d2fe;
-      margin-bottom: 16px;
+      display: inline-flex; align-items: center; gap: 12px;
+      font-weight: 700; font-size: 0.95rem;
+      letter-spacing: 0.02em;
     }
-    .brand .dot {
+    .brand-mark {
+      width: 32px; height: 32px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      display: grid; place-items: center;
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      position: relative;
+    }
+    .brand-mark::after {
+      content: ''; position: absolute;
+      inset: 4px;
+      border: 2px solid rgba(255,255,255,0.85);
+      border-radius: 4px;
+      border-bottom-color: transparent;
+      border-right-color: transparent;
+      transform: rotate(45deg);
+    }
+    .brand-name { display: flex; flex-direction: column; line-height: 1.15; }
+    .brand-name b { color: var(--text-0); font-weight: 700; }
+    .brand-name span { color: var(--text-3); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .weather-pill {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.88rem;
+    }
+    .weather-pill .icon {
+      width: 30px; height: 30px;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.45);
+      font-size: 0.95rem;
+    }
+    .weather-pill .meta { display: flex; flex-direction: column; line-height: 1.15; }
+    .weather-pill .meta b { color: var(--text-0); font-weight: 600; font-size: 0.92rem; }
+    .weather-pill .meta span { color: var(--text-2); font-size: 0.75rem; }
+
+    /* ============== HERO ============== */
+    .hero {
+      padding: 36px 32px 30px;
+      border-radius: 22px;
+      background:
+        radial-gradient(600px 300px at 100% 0%, rgba(139, 92, 246, 0.18), transparent 60%),
+        linear-gradient(180deg, rgba(99, 102, 241, 0.10), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -120px; right: -120px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(139,92,246,0.45), transparent 65%);
+      filter: blur(20px);
+      pointer-events: none;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 6px 14px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 999px;
+      font-size: 0.74rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: #c7d2fe; margin-bottom: 18px;
+    }
+    .pill .dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 12px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
     }
     h1 {
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      margin: 0 0 10px;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
+      font-size: clamp(1.9rem, 4.2vw, 2.8rem);
+      margin: 0 0 12px;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 60%, #a5b4fc 100%);
+      -webkit-background-clip: text; background-clip: text;
       -webkit-text-fill-color: transparent;
       font-weight: 800;
+      line-height: 1.1;
     }
     p.lead {
       color: var(--text-1);
-      margin: 0 0 6px;
+      margin: 0 0 4px;
       font-size: 1.05rem;
-      max-width: 620px;
+      max-width: 640px;
     }
     p.value {
       color: var(--text-2);
-      margin: 0 0 24px;
+      margin: 0 0 26px;
       font-size: 0.95rem;
-      max-width: 620px;
+      max-width: 640px;
     }
+    .hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     button#runBtn {
       position: relative;
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-      color: white;
-      border: none;
-      padding: 14px 26px;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 12px;
-      cursor: pointer;
-      letter-spacing: 0.01em;
-      box-shadow:
-        0 8px 20px rgba(99, 102, 241, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      color: white; border: none;
+      padding: 14px 28px; font-size: 1rem; font-weight: 600;
+      border-radius: 12px; cursor: pointer; letter-spacing: 0.01em;
+      box-shadow: 0 10px 28px rgba(99, 102, 241, 0.45),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.25);
       transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
+      display: inline-flex; align-items: center; gap: 10px;
     }
     button#runBtn:hover {
       transform: translateY(-1px);
-      box-shadow:
-        0 12px 28px rgba(99, 102, 241, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.18);
-      filter: brightness(1.05);
+      box-shadow: 0 14px 36px rgba(99, 102, 241, 0.55),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      filter: brightness(1.06);
     }
     button#runBtn:active { transform: translateY(0); }
-    button#runBtn::after {
-      content: '→';
-      font-size: 1.1rem;
-      transition: transform 0.2s ease;
-    }
+    button#runBtn::after { content: '→'; font-size: 1.1rem; transition: transform 0.2s ease; }
     button#runBtn:hover::after { transform: translateX(3px); }
+    .hero-hint { color: var(--text-3); font-size: 0.85rem; }
+    .hero-hint kbd {
+      background: rgba(255,255,255,0.06);
+      padding: 2px 7px; border-radius: 5px;
+      border: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--text-1);
+    }
 
-    #results {
-      margin-top: 28px;
+    /* ============== STATS ============== */
+    .stats {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat {
+      position: relative;
+      padding: 18px 18px 16px;
+      background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .stat:hover { border-color: rgba(99,102,241,0.35); transform: translateY(-1px); }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .stat-label .ind {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--text-3);
+    }
+    .stat-value {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-0);
+      line-height: 1;
+    }
+    .stat-sub { color: var(--text-3); font-size: 0.78rem; margin-top: 6px; }
+    .stat.total .ind     { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .stat.maintain .ind  { background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .stat.risky .ind     { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+    .stat.reschedule .ind{ background: var(--red); box-shadow: 0 0 10px var(--red); }
+    .stat.maintain  .stat-value { color: #6ee7b7; }
+    .stat.risky     .stat-value { color: #fcd34d; }
+    .stat.reschedule .stat-value { color: #fca5a5; }
+
+    /* ============== SECTION HEADER ============== */
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin: 8px 4px 14px; flex-wrap: wrap;
+    }
+    .section-head h3 {
+      margin: 0; font-size: 1.05rem; font-weight: 700;
+      letter-spacing: -0.01em; color: var(--text-0);
+    }
+    .section-head .sub { color: var(--text-3); font-size: 0.85rem; }
+
+    /* ============== CARDS ============== */
+    #results {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 18px;
     }
     .job-card {
       position: relative;
       background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 100%);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px;
-      box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.04) inset,
-        0 10px 30px rgba(0, 0, 0, 0.35);
-      transition: transform 0.18s ease, border-color 0.18s ease;
+      border-radius: 18px;
+      padding: 22px 22px 20px;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+                  0 14px 36px rgba(0, 0, 0, 0.45);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
       overflow: hidden;
     }
     .job-card::before {
-      content: '';
-      position: absolute;
+      content: ''; position: absolute;
       top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      opacity: 0.6;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+      opacity: 0.7;
     }
     .job-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(99, 102, 241, 0.45);
+      transform: translateY(-3px);
+      border-color: rgba(99, 102, 241, 0.5);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset,
+                  0 18px 44px rgba(0, 0, 0, 0.55);
     }
-    .job-header { margin-bottom: 14px; }
+    .job-header {
+      margin-bottom: 14px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px;
+    }
     .job-header h2 {
-      margin: 0 0 4px;
-      font-size: 1.2rem;
-      color: var(--text-0);
-      font-weight: 700;
-      letter-spacing: -0.01em;
+      margin: 0 0 4px; font-size: 1.18rem; color: var(--text-0);
+      font-weight: 700; letter-spacing: -0.01em;
     }
     .job-header .type {
-      color: var(--text-2);
-      font-size: 0.88rem;
+      color: var(--text-2); font-size: 0.85rem;
       text-transform: capitalize;
     }
+    .job-avatar {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.25));
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      display: grid; place-items: center;
+      font-weight: 700; color: #e0e7ff;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
     .decision {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
       padding: 12px 14px;
       margin-bottom: 14px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-1);
     }
     .decision div {
-      margin: 4px 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .decision div strong { color: var(--text-2); font-weight: 500; min-width: 0; }
-    .badge {
-      display: inline-flex;
+      margin: 5px 0;
+      display: flex; flex-wrap: wrap; gap: 8px;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 11px;
       border-radius: 999px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.07em;
       border: 1px solid transparent;
     }
     .badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
       background: currentColor;
-      box-shadow: 0 0 8px currentColor;
+      box-shadow: 0 0 10px currentColor;
     }
-    .badge.maintain   { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.35); }
-    .badge.risky      { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35); }
-    .badge.reschedule { background: rgba(239, 68, 68, 0.15);  color: #f87171; border-color: rgba(239, 68, 68, 0.35); }
+    .badge.maintain   { background: var(--green-soft); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+    .badge.risky      { background: var(--amber-soft); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+    .badge.reschedule { background: var(--red-soft); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
 
+    .client-msg-block {
+      margin-top: 12px;
+      padding: 10px 0 0;
+      border-top: 1px dashed var(--border);
+    }
+    .client-msg-label {
+      font-size: 0.7rem;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .client-msg-label::before {
+      content: ''; width: 14px; height: 1px; background: var(--text-3);
+    }
     .client-msg {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06));
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.06));
       border-left: 3px solid var(--accent);
       padding: 14px 16px;
       border-radius: 10px;
       font-weight: 500;
       white-space: pre-line;
-      font-size: 0.95rem;
+      font-size: 0.94rem;
       color: var(--text-0);
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
+    /* ============== EMPTY STATE ============== */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-3);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.02);
+    }
+    .empty-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.12));
+      border: 1px solid var(--border);
+      display: grid; place-items: center;
+      margin: 0 auto 14px;
+      font-size: 1.4rem;
+    }
+    .empty h4 { color: var(--text-1); margin: 0 0 6px; font-weight: 600; }
+    .empty p { margin: 0; font-size: 0.9rem; }
+
+    /* ============== FOOTER ============== */
+    footer {
+      margin-top: 36px;
+      padding: 18px;
+      text-align: center;
+      color: var(--text-3);
+      font-size: 0.82rem;
+    }
+    footer span { color: var(--text-2); }
+
+    /* ============== RESPONSIVE ============== */
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 600px) {
-      body { padding: 20px 14px 48px; }
-      .hero { padding: 24px 20px; border-radius: 16px; }
+      body { padding: 18px 14px 48px; }
+      .topbar { padding: 12px 14px; }
+      .hero { padding: 26px 22px; border-radius: 18px; }
       h1 { font-size: 1.7rem; }
       button#runBtn { width: 100%; justify-content: center; }
       #results { grid-template-columns: 1fr; gap: 14px; }
       .job-card { padding: 18px; }
+      .stat-value { font-size: 1.7rem; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="hero">
-      <div class="brand"><span class="dot"></span>SmartPlan</div>
-      <h1>Planification intelligente</h1>
-      <p class="lead">Jobs → Météo → Décisions → Messages clients</p>
-      <p class="value">Planification intelligente selon la météo, les priorités et les messages clients.</p>
-      <button id="runBtn">Lancer la simulation</button>
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-name">
+          <b>SmartPlan</b>
+          <span>Outil terrain intelligent</span>
+        </div>
+      </div>
+      <div class="weather-pill" id="weatherPill">
+        <div class="icon">☀</div>
+        <div class="meta">
+          <b id="weatherTemp">— °C</b>
+          <span id="weatherDesc">Météo simulée du jour</span>
+        </div>
+      </div>
     </div>
-    <div id="results"></div>
+
+    <div class="hero">
+      <div class="pill"><span class="dot"></span>Démo · Simulation locale</div>
+      <h1>Planification intelligente</h1>
+      <p class="lead">Jobs → Météo → Décisions → Messages clients.</p>
+      <p class="value">Planification intelligente selon la météo, les priorités et les messages clients.</p>
+      <div class="hero-actions">
+        <button id="runBtn">Lancer la simulation</button>
+        <span class="hero-hint">Optimisé pour le terrain — fonctionne hors-ligne.</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat total">
+        <div class="stat-label"><span class="ind"></span>Jobs analysés</div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-sub">total à traiter</div>
+      </div>
+      <div class="stat maintain">
+        <div class="stat-label"><span class="ind"></span>Maintenus</div>
+        <div class="stat-value" id="statMaintain">—</div>
+        <div class="stat-sub">conditions favorables</div>
+      </div>
+      <div class="stat risky">
+        <div class="stat-label"><span class="ind"></span>À risque</div>
+        <div class="stat-value" id="statRisky">—</div>
+        <div class="stat-sub">à confirmer</div>
+      </div>
+      <div class="stat reschedule">
+        <div class="stat-label"><span class="ind"></span>Reportés</div>
+        <div class="stat-value" id="statReschedule">—</div>
+        <div class="stat-sub">à replanifier</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h3>Décisions par chantier</h3>
+      <span class="sub">Triées par priorité et urgence</span>
+    </div>
+
+    <div id="results">
+      <div class="empty" id="emptyState">
+        <div class="empty-icon">▶</div>
+        <h4>Aucune décision pour le moment</h4>
+        <p>Lancez la simulation pour analyser les chantiers du jour.</p>
+      </div>
+    </div>
+
+    <footer>
+      <span>SmartPlan</span> · Aide les équipes terrain à décider rapidement, malgré la météo.
+    </footer>
   </div>
 
   <script>
-    // --- Jobs hardcodés ---
     const jobs = [
       { id: 1, client: 'Tremblay', type: 'pose_tourbe', priority: 'high',   deadline: '2026-06-10' },
       { id: 2, client: 'Gagnon',   type: 'peinture',    priority: 'urgent', deadline: '2026-06-05' },
@@ -248,7 +505,6 @@
       { id: 4, client: 'Bouchard', type: 'pavage',      priority: 'low',    deadline: '2026-06-20' },
     ];
 
-    // --- Météo simulée ---
     function getMockWeather() {
       return [
         { time: '07:00', rainProbability: 5,  windKmh: 8,  temperature: 14, humidity: 55 },
@@ -262,7 +518,6 @@
       ];
     }
 
-    // --- Règles & poids par type ---
     const JOB_RULES = {
       pose_tourbe: { maxRain: 30, maxWind: 40, minTemp: 5,  maxTemp: 30, maxHum: 90 },
       peinture:    { maxRain: 10, maxWind: 25, minTemp: 10, maxTemp: 32, maxHum: 70 },
@@ -306,9 +561,7 @@
       if (score >= 75) status = 'ok';
       else if (score >= 50) status = 'risk';
       else status = 'bad';
-      const breakdown = {
-        pluie: rainS, vent: windS, 'température': tempS, 'humidité': humS,
-      };
+      const breakdown = { pluie: rainS, vent: windS, 'température': tempS, 'humidité': humS };
       return { status, score, breakdown };
     }
 
@@ -420,6 +673,37 @@
       })[c]);
     }
 
+    function getInitials(name) {
+      return String(name || '').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '·';
+    }
+
+    function updateStats(decisions) {
+      const total = decisions.length;
+      const maintain = decisions.filter(d => d.action === 'maintain').length;
+      const risky = decisions.filter(d => d.action === 'risky').length;
+      const reschedule = decisions.filter(d => d.action === 'reschedule').length;
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statMaintain').textContent = maintain;
+      document.getElementById('statRisky').textContent = risky;
+      document.getElementById('statReschedule').textContent = reschedule;
+    }
+
+    function renderWeatherSummary() {
+      const w = getMockWeather();
+      const temps = w.map(s => s.temperature);
+      const minT = Math.min(...temps);
+      const maxT = Math.max(...temps);
+      const maxRain = Math.max(...w.map(s => s.rainProbability));
+      const desc = maxRain >= 60
+        ? 'Matin clair · pluie probable PM'
+        : maxRain >= 30
+          ? 'Variable · averses possibles'
+          : 'Journée stable';
+      document.getElementById('weatherTemp').textContent = `${minT}° → ${maxT}°C`;
+      document.getElementById('weatherDesc').textContent = desc;
+    }
+    renderWeatherSummary();
+
     function runSimulation() {
       const weather = getMockWeather();
       const weatherByHour = {};
@@ -437,18 +721,26 @@
         card.className = 'job-card';
         card.innerHTML = `
           <div class="job-header">
-            <h2>${escapeHtml(job.client)}</h2>
-            <div class="type">${escapeHtml(TYPE_LABELS[job.type] || job.type)} — priorité ${escapeHtml(job.priority)}</div>
+            <div>
+              <h2>${escapeHtml(job.client)}</h2>
+              <div class="type">${escapeHtml(TYPE_LABELS[job.type] || job.type)} — priorité ${escapeHtml(job.priority)}</div>
+            </div>
+            <div class="job-avatar">${escapeHtml(getInitials(job.client))}</div>
           </div>
           <div class="decision">
             <div>→ Action : <span class="badge ${d.action}">${escapeHtml(d.action)}</span></div>
             <div>→ Heure : ${escapeHtml(d.suggestedTime || 'aucune')}</div>
             <div>→ Message technique : ${escapeHtml(d.message)}</div>
           </div>
-          <div class="client-msg">${escapeHtml(msg)}</div>
+          <div class="client-msg-block">
+            <div class="client-msg-label">Message client</div>
+            <div class="client-msg">${escapeHtml(msg)}</div>
+          </div>
         `;
         root.appendChild(card);
       }
+
+      updateStats(decisions);
     }
 
     document.getElementById('runBtn').addEventListener('click', runSimulation);
