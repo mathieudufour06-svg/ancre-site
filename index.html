@@ -366,7 +366,7 @@
 
     /* Leaflet overrides — dark theme */
     .leaflet-container { background: var(--ink-2) !important; }
-    .leaflet-tile-pane { filter: brightness(.68) saturate(.35) hue-rotate(180deg) invert(1) brightness(.55) contrast(1.1); }
+    /* CartoDB dark tiles — no CSS hack needed */
     .leaflet-control-zoom { border: 1px solid var(--border-2) !important; }
     .leaflet-control-zoom a { background: var(--ink-3) !important; color: var(--gold) !important; border-color: var(--border) !important; }
     .leaflet-control-zoom a:hover { background: var(--ink-4) !important; }
@@ -1447,6 +1447,7 @@
       gp.classList.add('hidden'); mp.classList.remove('hidden');
       vm.classList.add('active'); vg.classList.remove('active');
       initMap();
+      setTimeout(() => { if (lfMap) lfMap.invalidateSize(); }, 80);
     }
   }
 
@@ -1459,15 +1460,16 @@
         zoomControl: true,
         attributionControl: true,
       });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18,
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19,
       }).addTo(lfMap);
     }
-    updateMap();
+    updateMap(true);
   }
 
-  function updateMap() {
+  function updateMap(resetView = false) {
     if (!lfMap) return;
     // Clear old markers
     Object.values(lfMarkers).forEach(m => lfMap.removeLayer(m));
@@ -1494,10 +1496,10 @@
 
     renderSidebar();
 
-    // Fit bounds
-    if (filtered.length > 0) {
+    // Fit bounds only on first load or explicit reset
+    if (resetView && filtered.length > 0) {
       const coords = filtered.map(a => [a.lat, a.lng]);
-      lfMap.fitBounds(coords, { padding: [40,40] });
+      lfMap.fitBounds(coords, { padding: [60, 60], maxZoom: 10 });
     }
   }
 
