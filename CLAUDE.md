@@ -82,7 +82,7 @@ Instructions de développement pour Claude. Lire avant de modifier quoi que ce s
 - Appeler `fitBounds()` sur chaque filtre (lag UX)
 - Oublier `invalidateSize()` sur la carte
 - Mettre des images Unsplash dark (tatouages sur peau sombre = zone noire) — utiliser Picsum ou images vérifiées
-- Push sur `main` sans tester sur `v2` d'abord (sauf urgence)
+- Pousser directement sur `main` — toujours passer par une Pull Request depuis `v2`.
 - Supprimer la texture grain `body::before`
 
 ---
