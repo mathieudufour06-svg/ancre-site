@@ -82,7 +82,7 @@ Instructions de développement pour Claude. Lire avant de modifier quoi que ce s
 - Appeler `fitBounds()` sur chaque filtre (lag UX)
 - Oublier `invalidateSize()` sur la carte
 - Mettre des images Unsplash dark (tatouages sur peau sombre = zone noire) — utiliser Picsum ou images vérifiées
-- Push sur `main` sans tester sur `v2` d'abord (sauf urgence)
+- Pousser directement sur `main` — toujours passer par une Pull Request depuis `v2`.
 - Supprimer la texture grain `body::before`
 
 ---
@@ -101,14 +101,12 @@ Chaque artiste doit avoir :
 
 ---
 
-## Déploiement
+## Workflow Git / GitHub
 
-```bash
-# Depuis /tmp/ancre-push (clone du repo)
-git add .
-git commit -m "feat/fix: description"
-git push origin v2        # branche de dev
-git push origin v2:main   # → Netlify redéploie automatiquement
-```
-
-Token GitHub (scope repo) : disponible dans les notes de session si nécessaire.
+- `main` = production, branche protégée.
+- Ne jamais pousser directement sur `main`.
+- Toute feature ou correction part d’une branche dédiée créée depuis `v2`.
+- Les changements sont soumis par Pull Request vers `v2`.
+- Après validation et revue, `v2` est fusionnée vers `main` uniquement via une Pull Request.
+- Claude ne doit jamais merger une PR vers `main` sans demande explicite de Mathieu.
+- Ne jamais stocker de token, clé API ou secret dans `CLAUDE.md`, le repo, les prompts ou les notes de session.
