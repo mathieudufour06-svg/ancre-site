@@ -530,6 +530,9 @@
     .fsuccess-icon { font-size: 2.2rem; margin-bottom: .65rem; }
     .fsuccess h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--gold); margin-bottom: .6rem; }
     .fsuccess p { color: var(--ash); font-size: .88rem; line-height: 1.6; }
+    .form-error { display: none; color: #d98b8b; font-size: .78rem; line-height: 1.5; text-align: center; margin-top: .8rem; }
+    .form-error.visible { display: block; }
+    .fsubmit:disabled { cursor: wait; opacity: .65; transform: none; box-shadow: none; }
 
     /* ─────────────────── FOOTER ─────────────────── */
     footer {
@@ -1029,8 +1032,9 @@
         </div>
         <!-- PANEL ARTISTE UNIQUEMENT -->
         <div class="fpanel active" id="fpanel-artist">
-          <form name="artistes" method="POST" data-netlify="true" onsubmit="submitForm(event,'artist')">
+          <form name="artistes" method="POST" data-netlify="true" netlify-honeypot="bot-field" onsubmit="submitForm(event,'artist')">
             <input type="hidden" name="form-name" value="artistes"/>
+            <p hidden><label>Ne pas remplir : <input name="bot-field" tabindex="-1" autocomplete="off"/></label></p>
 
             <!-- Nom + Email côte à côte -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
@@ -1140,6 +1144,7 @@
             </button>
             <div class="fnote" id="fnote-artist-fr">Gratuit · Sans engagement · Visibilité immédiate.</div>
             <div class="fnote" id="fnote-artist-en" style="display:none">Free · No commitment · Immediate visibility.</div>
+            <div class="form-error" id="error-artist" role="alert" aria-live="assertive"></div>
           </form>
           <div class="fsuccess" id="succ-artist">
             <div class="fsuccess-icon">⚓</div>
@@ -1293,13 +1298,6 @@
     </div>
     <div class="foot-copy">© 2026 · ancredanslapeau.ca</div>
   </footer>
-
-  <!-- Netlify hidden form artistes -->
-  <form name="artistes" method="POST" data-netlify="true" hidden>
-    <input type="hidden" name="form-name" value="artistes"/>
-    <input type="text" name="nom"/><input type="email" name="email"/>
-    <input type="text" name="instagram"/><input type="text" name="region"/><input type="text" name="style"/>
-  </form>
 
   <!-- ══════════ JS ══════════ -->
   <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -1580,14 +1578,33 @@
   }
 
   /* ───── FORM ───── */
-  function submitForm(e, type) {
+  async function submitForm(e, type) {
     e.preventDefault();
     const form = e.target;
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(new FormData(form)).toString()
-    }).then(() => showSuccess(type)).catch(() => showSuccess(type));
+    const button = form.querySelector('button[type="submit"]');
+    const error = document.getElementById('error-' + type);
+    const originalButton = button.innerHTML;
+    error.classList.remove('visible');
+    error.textContent = '';
+    button.disabled = true;
+    button.textContent = currentLang === 'en' ? 'Sending…' : 'Envoi en cours…';
+
+    try {
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form)).toString()
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      showSuccess(type);
+    } catch (err) {
+      error.textContent = currentLang === 'en'
+        ? 'The form could not be sent. Please try again.'
+        : 'Le formulaire n’a pas pu être envoyé. Réessaie dans quelques instants.';
+      error.classList.add('visible');
+      button.disabled = false;
+      button.innerHTML = originalButton;
+    }
   }
   function showSuccess(type) {
     const panel = document.getElementById('fpanel-' + type);

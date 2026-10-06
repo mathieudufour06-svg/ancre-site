@@ -270,6 +270,12 @@
       color: var(--gold); text-decoration: none;
       border-bottom: 1px solid var(--gold-dim); padding-bottom: 2px;
     }
+    .form-error {
+      display: none; color: #d98b8b; font-size: .82rem; line-height: 1.5;
+      text-align: center; margin-top: 1rem;
+    }
+    .form-error.visible { display: block; }
+    .btn-primary:disabled { cursor: wait; opacity: .65; transform: none; }
 
     /* ── FOOTER ── */
     footer {
@@ -326,16 +332,8 @@
     <!-- FORM CARD -->
     <div class="form-card">
 
-      <!-- Hidden Netlify form (for bot detection) -->
-      <form name="inscription-artiste" netlify netlify-honeypot="bot-field" hidden>
-        <input name="nom_artiste"/> <input name="studio"/> <input name="region"/>
-        <input name="instagram"/> <input name="site_web"/> <input name="email"/>
-        <input name="styles"/> <input name="prix"/> <input name="bio"/>
-        <input name="disponibilite"/>
-      </form>
-
       <!-- REAL multi-step form -->
-      <form id="main-form" name="inscription-artiste" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+      <form id="main-form" name="inscription-artiste" method="POST" data-netlify="true" netlify-honeypot="bot-field">
         <input type="hidden" name="form-name" value="inscription-artiste"/>
         <input type="hidden" name="bot-field" style="display:none"/>
         <input type="hidden" name="styles" id="hidden-styles"/>
@@ -486,6 +484,7 @@
             <button type="button" class="btn-secondary" onclick="goTo(2)">← Retour</button>
             <button type="submit" class="btn-primary">Envoyer ma candidature ✓</button>
           </div>
+          <div class="form-error" id="form-error" role="alert" aria-live="assertive"></div>
         </div>
 
         <!-- CONFIRMATION -->
@@ -566,17 +565,38 @@
       document.getElementById('hidden-prix').value = el.dataset.price;
     }
 
-    // Form submit → show confirmation
+    // Form submit → show confirmation only after Netlify accepts it
     document.getElementById('main-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const data = new FormData(this);
+      const form = this;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const error = document.getElementById('form-error');
+      const checkedStyles = form.querySelectorAll('.style-chip input:checked');
+      document.getElementById('hidden-styles').value = [...checkedStyles].map(c => c.value).join(', ');
+
+      error.classList.remove('visible');
+      error.textContent = '';
+      submitButton.disabled = true;
+      submitButton.textContent = 'Envoi en cours…';
+
       try {
-        await fetch('/', { method: 'POST', body: data });
-      } catch(err) {}
-      document.getElementById('step-' + currentStep).classList.remove('active');
-      document.getElementById('step-confirm').classList.add('active');
-      document.getElementById('progress').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        const response = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(new FormData(form)).toString()
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+
+        document.getElementById('step-' + currentStep).classList.remove('active');
+        document.getElementById('step-confirm').classList.add('active');
+        document.getElementById('progress').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch(err) {
+        error.textContent = 'La candidature n’a pas pu être envoyée. Réessaie dans quelques instants.';
+        error.classList.add('visible');
+        submitButton.disabled = false;
+        submitButton.textContent = 'Envoyer ma candidature ✓';
+      }
     });
   </script>
 </body>
