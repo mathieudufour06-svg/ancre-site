@@ -273,6 +273,18 @@
     .view-panel.hidden { display: none; }
 
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 4rem 1.5rem;
+      border: 1px solid var(--border);
+      color: var(--ash);
+      font-family: 'Space Mono', monospace;
+      font-size: .68rem;
+      letter-spacing: .12em;
+      line-height: 1.8;
+      text-align: center;
+      text-transform: uppercase;
+    }
 
     .acard {
       background: var(--ink-3); border: 1px solid var(--border);
@@ -1347,8 +1359,8 @@
   /* ───── SCROLL HERO ───── */
   function scrollToExplore() {
     const el = document.getElementById('explore-bar') || document.getElementById('grid-panel');
+    applyFilters();
     if (el) window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
-    syncFilters();
   }
   function scrollToReg(e) {
     e.preventDefault();
@@ -1358,8 +1370,13 @@
 
   /* ───── SYNC hero search → sticky bar ───── */
   function syncFilters() {
+    const style = document.getElementById('hero-style').value;
+    chipFilter = style || 'all';
+    document.querySelectorAll('.chip').forEach(chip => {
+      const handler = chip.getAttribute('onclick') || '';
+      chip.classList.toggle('active', handler.includes(`'${chipFilter}'`));
+    });
     applyFilters();
-    scrollToExplore();
   }
 
   /* ───── FILTERS ───── */
@@ -1385,12 +1402,19 @@
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     chipFilter = val;
+    document.getElementById('hero-style').value = val === 'all' ? '' : val;
     applyFilters();
   }
 
   /* ───── GRID ───── */
   function renderGrid() {
     const g = document.getElementById('grid');
+    if (filtered.length === 0) {
+      g.innerHTML = `<div class="empty-state">${currentLang === 'en'
+        ? 'No artist matches these filters. Try broadening your search.'
+        : 'Aucun artiste ne correspond à ces filtres. Essaie d\'élargir ta recherche.'}</div>`;
+      return;
+    }
     g.innerHTML = filtered.map((a, i) => `
       <div class="acard" data-id="${a.id}" style="animation-delay:${i*.06}s"
            onclick="openProfile(${a.id})"
@@ -1505,6 +1529,12 @@
 
   function renderSidebar() {
     const list = document.getElementById('sidebar-list');
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state">${currentLang === 'en'
+        ? 'No artist matches these filters.'
+        : 'Aucun artiste ne correspond à ces filtres.'}</div>`;
+      return;
+    }
     list.innerHTML = filtered.map(a => `
       <div class="scard" data-id="${a.id}"
            onclick="selectArtist(${a.id})"
