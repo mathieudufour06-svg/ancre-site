@@ -310,6 +310,8 @@
       content: ''; position: absolute; inset: 0; z-index: 1;
       background: linear-gradient(180deg, transparent 35%, rgba(10,10,10,.96) 100%);
     }
+    .grid-msg { grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center; color: var(--ash); font-family: 'Space Mono', monospace; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; border: 1px solid var(--border); background: radial-gradient(circle at 50% 0%, var(--gold-glow), transparent 70%), var(--ink-2); box-shadow: inset 0 1px 0 rgba(245,240,232,.03); }
+    .acard-initial { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 4.5rem; color: var(--gold-dim); opacity: .55; pointer-events: none; text-shadow: 0 0 40px var(--gold-glow); }
     .acard-badge {
       position: absolute; top: .85rem; left: .85rem; z-index: 2;
       background: rgba(10,10,10,.88); backdrop-filter: blur(8px);
@@ -936,8 +938,8 @@
   <!-- ══════════ EXPLORE BAR ══════════ -->
   <div class="explore-bar" id="explore-bar" data-explore="true">
     <div class="eb-left">
-      <div class="results-count" id="rcount-fr"><strong id="rc-fr">7</strong> artistes</div>
-      <div class="results-count" id="rcount-en" style="display:none"><strong id="rc-en">7</strong> artists</div>
+      <div class="results-count" id="rcount-fr"><strong id="rc-fr">…</strong> artistes</div>
+      <div class="results-count" id="rcount-en" style="display:none"><strong id="rc-en">…</strong> artists</div>
     </div>
     <div class="eb-chips" id="chip-row">
       <button class="chip active" onclick="setChip(this,'all')"><span class="cfr">Tous</span><span class="cen" style="display:none">All</span></button>
@@ -978,8 +980,8 @@
       <div class="map-sidebar-header">
         <div class="map-sidebar-title" id="msb-title-fr">Artistes sur la carte</div>
         <div class="map-sidebar-title" id="msb-title-en" style="display:none">Artists on the map</div>
-        <div class="map-sidebar-meta" id="msb-meta-fr"><span id="msb-count">7</span> artistes</div>
-        <div class="map-sidebar-meta" id="msb-meta-en" style="display:none"><span id="msb-count-en">7</span> artists</div>
+        <div class="map-sidebar-meta" id="msb-meta-fr"><span id="msb-count">…</span> artistes</div>
+        <div class="map-sidebar-meta" id="msb-meta-en" style="display:none"><span id="msb-count-en">…</span> artists</div>
       </div>
       <div class="map-sidebar-list" id="sidebar-list"></div>
     </div>
@@ -1292,50 +1294,98 @@
   <!-- ══════════ JS ══════════ -->
   <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   /* ───── DATA ───── */
-  const ARTISTS = [
-    { id:1, name:'Migtatou',    region:'Laurentides', rKey:'laurentides', style:'Blackwork',    sKey:'blackwork',   price:'$$',  pKey:2, rating:4.9, verified:true,
-      img:'https://picsum.photos/seed/10/500/600',
-      lat:45.90, lng:-74.00,
-      styles:['Blackwork','Dark art','Dotwork'], years:8, tattoos:600, instagram:'@migtatou',
-      bio:'Spécialisé dans le blackwork sombre et organique depuis 2016. Mon univers s\'inspire de la nature, du cosmos et des symboliques nordiques. Chaque pièce est conçue sur mesure, jamais copiée.',
-      portfolio:['https://picsum.photos/seed/11/400/500','https://picsum.photos/seed/12/400/500','https://picsum.photos/seed/13/400/500','https://picsum.photos/seed/14/400/500','https://picsum.photos/seed/15/400/500','https://picsum.photos/seed/16/400/500'] },
-    { id:2, name:'Cece Tattoo', region:'Montréal',    rKey:'montreal',    style:'Fine line',    sKey:'fineline',    price:'$$',  pKey:2, rating:4.8, verified:true,
-      img:'https://picsum.photos/seed/20/500/600',
-      lat:45.51, lng:-73.61,
-      styles:['Fine line','Minimaliste','Lettering'], years:6, tattoos:450, instagram:'@cecetattoo',
-      bio:'Fine line et minimalisme délicat sur tous types de peaux. Montréalaise de cœur, je crée des œuvres intemporelles qui vieillissent avec élégance. Spécialité : portraits botaniques et constellations.',
-      portfolio:['https://picsum.photos/seed/21/400/500','https://picsum.photos/seed/22/400/500','https://picsum.photos/seed/23/400/500','https://picsum.photos/seed/24/400/500','https://picsum.photos/seed/25/400/500','https://picsum.photos/seed/26/400/500'] },
-    { id:3, name:'Romu',        region:'Québec',      rKey:'quebec',      style:'Géométrique',  sKey:'geometric',   price:'$$$', pKey:3, rating:5.0, verified:true,
-      img:'https://picsum.photos/seed/30/500/600',
-      lat:46.81, lng:-71.21,
-      styles:['Géométrique','Dotwork','Mandala'], years:11, tattoos:900, instagram:'@romu.ink',
-      bio:'10 ans de géométrie sacrée, de mandalas et de dotwork précis. Basé à Québec, je voyage régulièrement pour des conventions. Ma précision au millimètre est ma signature.',
-      portfolio:['https://picsum.photos/seed/31/400/500','https://picsum.photos/seed/32/400/500','https://picsum.photos/seed/33/400/500','https://picsum.photos/seed/34/400/500','https://picsum.photos/seed/35/400/500','https://picsum.photos/seed/36/400/500'] },
-    { id:4, name:'Jay Mageau',  region:'Sherbrooke',  rKey:'estrie',      style:'Neo-trad',     sKey:'neotrad',     price:'$$',  pKey:2, rating:4.7, verified:false,
-      img:'https://picsum.photos/seed/40/500/600',
-      lat:45.40, lng:-71.89,
-      styles:['Néo-trad','Old school','Couleur'], years:5, tattoos:320, instagram:'@jaymageau',
-      bio:'Néo-trad coloré et expressif, avec une touche de bold lines old school. Installé à Sherbrooke depuis 5 ans, j\'adore les projets animaliers et les portraits pop.',
-      portfolio:['https://picsum.photos/seed/41/400/500','https://picsum.photos/seed/42/400/500','https://picsum.photos/seed/43/400/500','https://picsum.photos/seed/44/400/500','https://picsum.photos/seed/45/400/500','https://picsum.photos/seed/46/400/500'] },
-    { id:5, name:'Addikt',      region:'Saguenay',    rKey:'saguenay',    style:'Traditionnel', sKey:'traditional', price:'$',   pKey:1, rating:4.6, verified:false,
-      img:'https://picsum.photos/seed/50/500/600',
-      lat:48.43, lng:-71.07,
-      styles:['Traditionnel','Old school','Blackwork'], years:4, tattoos:210, instagram:'@addikt.ink',
-      bio:'Traditionnel pur, couleurs vives, trait gras. Je travaille dans un studio indépendant au cœur du Saguenay. Accessible et passionné, j\'adore initier les gens à leur premier tatouage.',
-      portfolio:['https://picsum.photos/seed/51/400/500','https://picsum.photos/seed/52/400/500','https://picsum.photos/seed/53/400/500','https://picsum.photos/seed/54/400/500','https://picsum.photos/seed/55/400/500','https://picsum.photos/seed/56/400/500'] },
-    { id:6, name:'Fleur Noire', region:'Outaouais',   rKey:'outaouais',   style:'Japonais',     sKey:'japanese',    price:'$$$', pKey:3, rating:4.9, verified:false,
-      img:'https://picsum.photos/seed/60/500/600',
-      lat:45.42, lng:-75.69,
-      styles:['Japonais','Irezumi','Dark art'], years:9, tattoos:700, instagram:'@fleurnoire.tattoo',
-      bio:'Japonais traditionnel et irezumi contemporain. Chaque projet est une collaboration profonde — je refuse les flash copies. Disponible pour des manches complètes et pièces de dos.',
-      portfolio:['https://picsum.photos/seed/61/400/500','https://picsum.photos/seed/62/400/500','https://picsum.photos/seed/63/400/500','https://picsum.photos/seed/64/400/500','https://picsum.photos/seed/65/400/500','https://picsum.photos/seed/66/400/500'] },
-    { id:7, name:'Atomik Wave', region:'Montérégie',  rKey:'monteregie',  style:'Réalisme',     sKey:'realism',     price:'$$$', pKey:3, rating:4.8, verified:false,
-      img:'https://picsum.photos/seed/70/500/600',
-      lat:45.33, lng:-73.28,
-      styles:['Réalisme','Portraits','Fine line'], years:7, tattoos:500, instagram:'@atomikwave',
-      bio:'Réalisme photographique noir & gris et couleur. Portraits, nature, architecture — je reproduis la réalité sur peau avec une précision obsessionnelle. En liste d\'attente mais ça vaut le coup.',
-      portfolio:['https://picsum.photos/seed/71/400/500','https://picsum.photos/seed/72/400/500','https://picsum.photos/seed/73/400/500','https://picsum.photos/seed/74/400/500','https://picsum.photos/seed/75/400/500','https://picsum.photos/seed/76/400/500'] },
-  ];
+  /* ───── DONNÉES ARTISTES (Supabase) ───── */
+  const SB_URL = 'https://aulmzckrayfilbhakmik.supabase.co';
+  const SB_KEY = 'sb_publishable_--CT_7tLQ_wYFc3p8KUUSA_311vobim'; // clé publique (lecture seule, protégée par RLS)
+  let ARTISTS = [];
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function priceKey(max) {
+    if (!max) return 0;
+    if (max <= 150) return 1;
+    if (max <= 220) return 2;
+    return 3;
+  }
+  function tr(fr, en) { return (typeof currentLang !== 'undefined' && currentLang === 'en' && en) ? en : fr; }
+  function aRegion(a) { return tr(a.region_fr, a.region_en) || ''; }
+  function aStyle(a)  { return tr(a.style_fr, a.style_en) || ''; }
+  function aBadge(a) {
+    if (a.verified) return tr('Vérifié', 'Verified');
+    if (a.emergent) return tr('Émergent', 'Emerging');
+    return tr('Nouveau', 'New');
+  }
+  function placeholderBg(a) {
+    return "radial-gradient(circle at 30% 20%, rgba(200,169,110,.22), transparent 60%), linear-gradient(160deg, var(--ink-4), var(--ink-2))";
+  }
+  function imgStyle(a) {
+    return a.img ? `background-image:url('${esc(a.img)}')` : `background-image:${placeholderBg(a)}`;
+  }
+  function initialHtml(a) {
+    return a.img ? '' : `<span class="acard-initial">${esc((a.name || '?').charAt(0).toUpperCase())}</span>`;
+  }
+
+  function mapArtist(r, i) {
+    const reg = r.regions || {};
+    const styleRows = (r.artistes_styles || []).map(x => x.styles).filter(Boolean);
+    const photos = (r.photos || []).slice().sort((x, y) => (x.ordre || 0) - (y.ordre || 0)).map(p => p.url).filter(Boolean);
+    const main = styleRows[0] || {};
+    const pk = priceKey(r.budget_max);
+    return {
+      id: i + 1,
+      uuid: r.id,
+      name: r.nom,
+      region_fr: r.ville || reg.nom || '',
+      region_en: r.ville || reg.nom_en || reg.nom || '',
+      rKey: reg.cle || '',
+      style_fr: main.nom || '',
+      style_en: main.nom_en || main.nom || '',
+      sKey: main.cle || '',
+      sKeys: styleRows.map(x => x.cle).filter(Boolean),
+      styles_fr: styleRows.map(x => x.nom),
+      styles_en: styleRows.map(x => x.nom_en || x.nom),
+      pKey: pk,
+      price: pk ? '$'.repeat(pk) : '—',
+      budget: (r.budget_min && r.budget_max) ? `${r.budget_min}–${r.budget_max} $/h` : '',
+      rating: null,
+      verified: !!r.verifie,
+      emergent: !!r.emergent,
+      delai: r.delai_semaines,
+      img: photos[0] || '',
+      portfolio: photos,
+      lat: r.lat, lng: r.lng,
+      instagram: r.instagram ? '@' + String(r.instagram).replace(/^@/, '') : '',
+      bio_fr: r.bio || '', bio_en: r.bio_en || '',
+    };
+  }
+
+  function updateCounts() {
+    const n = filtered.length;
+    ['rc-fr','rc-en','msb-count','msb-count-en'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = n; });
+  }
+
+  async function loadArtists() {
+    const g = document.getElementById('grid');
+    if (g) g.innerHTML = `<div class="grid-msg">${tr('Chargement des artistes…', 'Loading artists…')}</div>`;
+    ['rc-fr','rc-en','msb-count','msb-count-en'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '…'; });
+    const q = 'select=id,nom,instagram,ville,bio,bio_en,budget_min,budget_max,verifie,emergent,delai_semaines,lat,lng,'
+            + 'regions(nom,nom_en,cle),artistes_styles(styles(nom,nom_en,cle)),photos(url,ordre)'
+            + '&actif=eq.true&order=created_at.asc';
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/artistes?${q}`, { headers: { apikey: SB_KEY } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = await res.json();
+      ARTISTS = Array.isArray(rows) ? rows.map(mapArtist) : [];
+      applyFilters();
+      if (curView === 'map') updateMap(true);
+    } catch (err) {
+      console.warn('Artistes indisponibles :', err);
+      ARTISTS = []; filtered = [];
+      updateCounts();
+      if (g) g.innerHTML = `<div class="grid-msg">${tr('Les artistes ne peuvent pas être chargés pour le moment. Réessaie dans quelques minutes.', 'Artists can\'t be loaded right now. Please try again in a few minutes.')}</div>`;
+    }
+  }
 
   let filtered   = [...ARTISTS];
   let chipFilter = 'all';
@@ -1348,7 +1398,7 @@
   function scrollToExplore() {
     const el = document.getElementById('explore-bar') || document.getElementById('grid-panel');
     if (el) window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
-    syncFilters();
+    applyFilters();
   }
   function scrollToReg(e) {
     e.preventDefault();
@@ -1358,7 +1408,6 @@
 
   /* ───── SYNC hero search → sticky bar ───── */
   function syncFilters() {
-    applyFilters();
     scrollToExplore();
   }
 
@@ -1369,14 +1418,10 @@
     filtered = ARTISTS.filter(a => {
       if (region && a.rKey !== region) return false;
       if (budget && a.pKey !== parseInt(budget)) return false;
-      if (chipFilter !== 'all' && a.sKey !== chipFilter) return false;
+      if (chipFilter !== 'all' && !(a.sKeys || [a.sKey]).includes(chipFilter)) return false;
       return true;
     });
-    const n = filtered.length;
-    document.getElementById('rc-fr').textContent = n;
-    document.getElementById('rc-en').textContent = n;
-    document.getElementById('msb-count').textContent = n;
-    document.getElementById('msb-count-en').textContent = n;
+    updateCounts();
     renderGrid();
     if (curView === 'map') updateMap();
   }
@@ -1391,16 +1436,21 @@
   /* ───── GRID ───── */
   function renderGrid() {
     const g = document.getElementById('grid');
+    if (!g) return;
+    if (!filtered.length) {
+      g.innerHTML = `<div class="grid-msg">${ARTISTS.length ? tr('Aucun artiste ne correspond à ces filtres pour le moment.', 'No artist matches these filters yet.') : tr('Les premiers artistes arrivent bientôt.', 'The first artists are coming soon.')}</div>`;
+      return;
+    }
     g.innerHTML = filtered.map((a, i) => `
       <div class="acard" data-id="${a.id}" style="animation-delay:${i*.06}s"
            onclick="openProfile(${a.id})"
            onmouseenter="gridHover(${a.id})" onmouseleave="gridUnhover()">
         <div class="acard-img">
-          <span class="acard-badge">${a.verified ? 'Vérifié' : 'Nouveau'}</span>
+          <span class="acard-badge">${aBadge(a)}</span>
           <div class="acard-fav" onclick="event.stopPropagation();this.classList.toggle('on')">
             <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </div>
-          <div class="acard-img-inner" style="background-image:url('${a.img}')"></div>
+          <div class="acard-img-inner" style="${imgStyle(a)}"></div>${initialHtml(a)}
           <div class="acard-actions">
             <button class="acard-action">Portfolio</button>
             <button class="acard-action">Contact</button>
@@ -1408,16 +1458,16 @@
         </div>
         <div class="acard-body">
           <div class="acard-top">
-            <span class="acard-name">${a.name}</span>
-            <span class="acard-region">${a.region}</span>
+            <span class="acard-name">${esc(a.name)}</span>
+            <span class="acard-region">${esc(aRegion(a))}</span>
           </div>
-          <div class="acard-style">${a.style}</div>
+          <div class="acard-style">${esc(aStyle(a))}</div>
           <div class="acard-foot">
             <span class="acard-price">${a.price}</span>
-            <span class="acard-rating">
+            ${a.rating != null ? `<span class="acard-rating">
               <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
               ${a.rating.toFixed(1)}
-            </span>
+            </span>` : ''}
           </div>
         </div>
       </div>
@@ -1476,16 +1526,17 @@
     lfMarkers = {};
 
     filtered.forEach(a => {
+      if (typeof a.lat !== 'number' || typeof a.lng !== 'number') return;
       const pinHtml = `<div class="lf-pin" id="pin-${a.id}"><div class="lf-pin-inner"></div></div>`;
       const icon = L.divIcon({ html: pinHtml, className: '', iconSize: [36,36], iconAnchor: [18,18] });
       const marker = L.marker([a.lat, a.lng], { icon }).addTo(lfMap);
 
       const popupHtml = `
         <div class="lf-popup">
-          <div class="lf-popup-img" style="background-image:url('${a.img}')"></div>
-          <div class="lf-popup-name">${a.name}</div>
-          <div class="lf-popup-style">${a.style}</div>
-          <div class="lf-popup-region">${a.region}</div>
+          <div class="lf-popup-img" style="${imgStyle(a)}"></div>
+          <div class="lf-popup-name">${esc(a.name)}</div>
+          <div class="lf-popup-style">${esc(aStyle(a))}</div>
+          <div class="lf-popup-region">${esc(aRegion(a))}</div>
           <span class="lf-popup-price">${a.price}</span>
         </div>`;
 
@@ -1497,8 +1548,8 @@
     renderSidebar();
 
     // Fit bounds only on first load or explicit reset
-    if (resetView && filtered.length > 0) {
-      const coords = filtered.map(a => [a.lat, a.lng]);
+    const coords = filtered.filter(a => typeof a.lat === 'number' && typeof a.lng === 'number').map(a => [a.lat, a.lng]);
+    if (resetView && coords.length > 0) {
       lfMap.fitBounds(coords, { padding: [60, 60], maxZoom: 10 });
     }
   }
@@ -1510,11 +1561,11 @@
            onclick="selectArtist(${a.id})"
            onmouseenter="hoverPin(${a.id})"
            onmouseleave="unhoverPin(${a.id})">
-        <div class="scard-thumb" style="background-image:url('${a.img}')"></div>
+        <div class="scard-thumb" style="${imgStyle(a)}"></div>
         <div class="scard-info">
-          <div class="scard-name">${a.name}</div>
-          <div class="scard-style">${a.style}</div>
-          <div class="scard-region">${a.region}</div>
+          <div class="scard-name">${esc(a.name)}</div>
+          <div class="scard-style">${esc(aStyle(a))}</div>
+          <div class="scard-region">${esc(aRegion(a))}</div>
         </div>
         <div class="scard-price">${a.price}</div>
       </div>
@@ -1645,39 +1696,43 @@
     if (!a) return;
 
     // Remplir les données
-    document.getElementById('pHeroImg').src = a.img;
-    document.getElementById('pHeroImg').alt = a.name;
+    const heroImg = document.getElementById('pHeroImg');
+    if (a.img) { heroImg.src = a.img; heroImg.style.visibility = ''; }
+    else { heroImg.removeAttribute('src'); heroImg.style.visibility = 'hidden'; }
+    heroImg.alt = a.name;
+    const heroWrap = heroImg.parentElement;
+    if (heroWrap) heroWrap.style.backgroundImage = a.img ? '' : placeholderBg(a);
     document.getElementById('pName').textContent = a.name;
-    document.getElementById('pRegion').textContent = a.region;
-    document.getElementById('pPrice').textContent = a.price;
-    document.getElementById('pRating').textContent = a.rating.toFixed(1);
-    document.getElementById('pRatingBig').textContent = a.rating.toFixed(1);
+    document.getElementById('pRegion').textContent = aRegion(a);
+    document.getElementById('pPrice').textContent = a.budget || a.price;
+    const ratingTxt = a.rating != null ? a.rating.toFixed(1) : '—';
+    document.getElementById('pRating').textContent = ratingTxt;
+    document.getElementById('pRatingBig').textContent = ratingTxt;
     document.getElementById('pYears').textContent = a.years || '—';
     document.getElementById('pTattoos').textContent = a.tattoos ? a.tattoos + '+' : '—';
-    document.getElementById('pBio').textContent = a.bio || (currentLang === 'fr' ? 'Profil en cours de complétion.' : 'Profile being completed.');
+    document.getElementById('pBio').textContent = tr(a.bio_fr, a.bio_en) || (currentLang === 'fr' ? 'Profil en cours de complétion.' : 'Profile being completed.');
 
     // Badge
     const badgeText = document.getElementById('pBadgeText');
-    badgeText.textContent = a.verified ? (currentLang === 'fr' ? 'Vérifié' : 'Verified') : (currentLang === 'fr' ? 'Nouveau' : 'New');
+    badgeText.textContent = aBadge(a);
     document.getElementById('pBadge').style.borderColor = a.verified ? 'var(--gold-dim)' : 'var(--border-2)';
 
     // Tags styles
     const tagsEl = document.getElementById('pTags');
-    const styleList = a.styles || [a.style];
-    tagsEl.innerHTML = styleList.map(s => `<span class="profile-tag">${s}</span>`).join('');
+    const styleList = (currentLang === 'en' ? a.styles_en : a.styles_fr) || [];
+    tagsEl.innerHTML = styleList.map(s => `<span class="profile-tag">${esc(s)}</span>`).join('');
 
     // Portfolio
     const portEl = document.getElementById('pPortfolio');
-    const imgs = a.portfolio || [a.img, a.img, a.img, a.img, a.img, a.img];
-    portEl.innerHTML = imgs.slice(0, 6).map(src =>
-      `<div class="profile-portfolio-item"><img src="${src}" alt="Portfolio ${a.name}" loading="lazy"/></div>`
-    ).join('');
+    const imgs = a.portfolio || [];
+    portEl.innerHTML = imgs.length
+      ? imgs.slice(0, 6).map(src => `<div class="profile-portfolio-item"><img src="${esc(src)}" alt="Portfolio ${esc(a.name)}" loading="lazy"/></div>`).join('')
+      : `<div class="grid-msg">${tr('Portfolio à venir — voir Instagram en attendant.', 'Portfolio coming soon — see Instagram in the meantime.')}</div>`;
 
     // Social links
     const socialEl = document.getElementById('pSocial');
     const links = [];
-    if (a.instagram) links.push(`<a class="profile-social-link" href="https://instagram.com/${a.instagram.replace('@','')}" target="_blank" rel="noopener">📷 ${a.instagram}</a>`);
-    if (a.website) links.push(`<a class="profile-social-link" href="${a.website}" target="_blank" rel="noopener">🌐 Portfolio</a>`);
+    if (a.instagram) links.push(`<a class="profile-social-link" href="https://instagram.com/${encodeURIComponent(a.instagram.replace('@',''))}" target="_blank" rel="noopener">📷 ${esc(a.instagram)}</a>`);
     socialEl.innerHTML = links.join('');
 
     // Ouvrir
@@ -1724,10 +1779,12 @@
     const fr = lang === 'fr';
     _aboutFrIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = fr ? '' : 'none'; });
     _aboutEnIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = fr ? 'none' : ''; });
+    renderGrid();
+    if (curView === 'map') { updateMap(); }
   };
 
   /* ───── INIT ───── */
-  renderGrid();
+  loadArtists();
   </script>
 
 </body>
