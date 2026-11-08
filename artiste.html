@@ -271,6 +271,9 @@
       border-bottom: 1px solid var(--gold-dim); padding-bottom: 2px;
     }
 
+    .form-error { color: var(--ivory); background: var(--ink-3); border: 1px solid var(--gold-dim); padding: 1rem; margin-top: 1rem; line-height: 1.5; }
+    .btn-primary:disabled { opacity: .6; cursor: wait; }
+
     /* ── FOOTER ── */
     footer {
       text-align: center; padding: 2.5rem;
@@ -348,11 +351,11 @@
 
           <div class="field">
             <label>Nom d'artiste *</label>
-            <input type="text" name="nom_artiste" placeholder="Ex : Migtatou, Cece Ink…" required/>
+            <input type="text" name="nom_artiste" maxlength="120" placeholder="Ex : Migtatou, Cece Ink…" required/>
           </div>
           <div class="field">
             <label>Nom du studio (optionnel)</label>
-            <input type="text" name="studio" placeholder="Ex : Studio Noir, Black Anchor Tattoo…"/>
+            <input type="text" name="studio" maxlength="120" placeholder="Ex : Studio Noir, Black Anchor Tattoo…"/>
           </div>
           <div class="field">
             <label>Région *</label>
@@ -443,7 +446,7 @@
 
           <div class="field">
             <label>Bio courte (optionnel)</label>
-            <textarea name="bio" placeholder="Décris ton univers artistique en quelques phrases…"></textarea>
+            <textarea name="bio" maxlength="2000" placeholder="Décris ton univers artistique en quelques phrases…"></textarea>
           </div>
 
           <div class="btn-row">
@@ -459,16 +462,16 @@
 
           <div class="field">
             <label>Courriel *</label>
-            <input type="email" name="email" placeholder="ton@email.com" required/>
+            <input type="email" name="email" maxlength="200" placeholder="ton@email.com" required/>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Instagram *</label>
-              <input type="text" name="instagram" placeholder="@tonhandle" required/>
+              <input type="text" name="instagram" maxlength="100" placeholder="@tonhandle" required/>
             </div>
             <div class="field">
               <label>Site web (optionnel)</label>
-              <input type="url" name="site_web" placeholder="https://…"/>
+              <input type="url" name="site_web" maxlength="300" placeholder="https://…"/>
             </div>
           </div>
           <div class="field">
@@ -482,6 +485,7 @@
             </select>
           </div>
 
+          <div id="form-error" class="form-error" role="alert" hidden></div>
           <div class="btn-row">
             <button type="button" class="btn-secondary" onclick="goTo(2)">← Retour</button>
             <button type="submit" class="btn-primary">Envoyer ma candidature ✓</button>
@@ -566,17 +570,57 @@
       document.getElementById('hidden-prix').value = el.dataset.price;
     }
 
-    // Form submit → show confirmation
+    // The public key identifies the project; database permissions control insertion.
+    const SB_URL = 'https://aulmzckrayfilbhakmik.supabase.co';
+    const SB_KEY = 'sb_publishable_--CT_7tLQ_wYFc3p8KUUSA_311vobim';
+    function showError(kind) {
+      const box = document.getElementById('form-error');
+      const messages = {
+        invalid: 'Vérifie les champs obligatoires et les limites.',
+        failed: 'La candidature n’a pas pu être envoyée. Vérifie ta connexion et réessaie.',
+        bot: 'La candidature n’a pas pu être envoyée. Vérifie le formulaire et réessaie.'
+      };
+      box.hidden = !kind;
+      box.textContent = kind ? messages[kind] : '';
+    }
     document.getElementById('main-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const data = new FormData(this);
+      const form = this;
+      const button = form.querySelector('button[type="submit"]');
+      if (button.disabled) return;
+      showError('');
+      const data = new FormData(form);
+      if (String(data.get('bot-field') || '').trim()) { showError('bot'); return; }
+      const fields = ['nom_artiste','studio','region','instagram','site_web','email','styles','prix','bio','disponibilite'];
+      const payload = Object.fromEntries(fields.map(name => {
+        const value = String(data.get(name) || '').trim();
+        return [name, value || null];
+      }));
+      const email = form.elements.email;
+      const limits = { nom_artiste: 120, studio: 120, region: 80, instagram: 100,
+        site_web: 300, email: 200, styles: 600, prix: 50, bio: 2000, disponibilite: 200 };
+      const withinLimits = Object.entries(limits).every(([name, max]) => !payload[name] || payload[name].length <= max);
+      const valid = payload.nom_artiste && payload.region && payload.instagram && payload.email && payload.styles
+        && withinLimits && email.validity.valid && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)
+        && (!payload.site_web || form.elements.site_web.validity.valid);
+      if (!valid) { showError('invalid'); return; }
+      button.disabled = true;
       try {
-        await fetch('/', { method: 'POST', body: data });
-      } catch(err) {}
-      document.getElementById('step-' + currentStep).classList.remove('active');
-      document.getElementById('step-confirm').classList.add('active');
-      document.getElementById('progress').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        const response = await fetch(`${SB_URL}/rest/v1/inscriptions_artistes`, {
+          method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify(payload)
+        });
+        if (response.status === 400 || response.status === 422) { showError('invalid'); return; }
+        if (response.status !== 201) { showError('failed'); return; }
+        document.getElementById('step-' + currentStep).classList.remove('active');
+        document.getElementById('step-confirm').classList.add('active');
+        document.getElementById('progress').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        showError('failed');
+      } finally {
+        button.disabled = false;
+      }
     });
   </script>
 </body>
